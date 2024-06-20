@@ -1,0 +1,6 @@
+p.id,p.username , first_name , last_name , is_superuser , p.email , is_active , organization ,pg.group_id,g.slug ,g.title,
+1000,admin,,Administrateur,true,admin@orga.fr,true,ORGA,g-orga-test,g-orga-test,
+1006,jeanmi,jeanmi,jeanmi,true,jeanmi@georchestra.org,true,ORGA,g-test,g-test,
+1006,jeanmi,jeanmi,jeanmi,true,jeanmi@georchestra.org,true,ORGA,g-orga-test,g-orga-test,
+1008,test1,test1,test1,false,test1@eorchestra.org,true,ORGA,g-test,g-test,
+1009,test2,test2,test2,false,test2@eorchestra.org,true,ORGA,g-test,g-test,
