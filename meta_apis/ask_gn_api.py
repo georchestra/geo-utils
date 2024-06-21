@@ -4,8 +4,9 @@ import re
 import urllib3
 import sys
 
-# adding local file
-from meta_manipulation import Meta_manipulation
+if __name__ == "__main__":
+    # adding local file
+    from meta_manipulation import Meta_manipulation
 
 
 # disable https checks (for testing or development server)
@@ -27,15 +28,27 @@ class Ask_gn_api:
 
         # To generate the XRSF token, send a post request to the following URL: http://localhost:8080/geonetwork/srv/eng/info?type=me
         response = self.session.post(authenticate_url)
-
+        # print(response.cookies)
         # Extract XRSF token
-        self.xsrf_token = response.cookies.get("XSRF-TOKEN")
+        self.xsrf_token = response.cookies.get("XSRF-TOKEN", path="/geonetwork")
         if self.xsrf_token:
             print("The XSRF Token is:", self.xsrf_token)
         else:
             print(response.text)
             print("Unable to find the XSRF token")
 
+    def getmetadataxml(self, uuid):
+        headers = {'Accept': 'application/xml',
+                   'X-XSRF-TOKEN': self.xsrf_token,
+                   }
+        url = self.server + "/geonetwork/srv/api/records/"+uuid
+
+        response = self.session.get(url,
+                                     auth=(self.username, self.password),
+                                     headers=headers,
+                                    )
+        if(response.status_code == 200):
+            return response.text
     # possible value for uuidprocessing : NOTHING , OVERWRITE , GENERATEUUID
     def upload_metadata(self, metadata, groupid='100', uuidprocessing='GENERATEUUID', publish=False):
         headers = {'Accept': 'application/json',
@@ -132,12 +145,12 @@ if __name__ == "__main__":
     print("Will upload the file " + file_to_update)
 
     # Set up your username and password:
-    username = 'admin'
-    password = 'admin'
+    username = 'testadmin'
+    password = 'testadmin'
 
     # Set up your server and the authentication URL:
-    server = "http://localhost"
-    final_server = "http://localhost"
+    server = "https://georchestra-127-0-1-1.traefik.me"
+    final_server = server
 
     api_obj = Ask_gn_api(server=server, username=username, password=password)
 
@@ -145,7 +158,7 @@ if __name__ == "__main__":
     api_obj.generate_xsfr()
 
     # add exemple thesaurus to the GN
-    api_obj.upload_thesaurus_dict("exemple.rdf")
+    # api_obj.upload_thesaurus_dict("exemple.rdf")
 
     # read / add thesaurus to sample metadata and upload metadata to the remote GN
     f = open(file_to_update)
