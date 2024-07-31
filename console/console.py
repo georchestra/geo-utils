@@ -25,16 +25,38 @@ class Console_api:
         response = self.session.put(url,
                                     data=json,
                                     auth=(self.username, self.password),
-                                    headers=self.headers )
+                                    headers=self.headers)
         # print(response)
         if (response.status_code == 200):
             return response.text
+
+    def createnewuser(self, org, sn, givenname, mail, description):
+        newuser = {"pending": "false",
+                   "org": org,
+                   "manager": "",
+                   "sn": sn,
+                   "givenName": givenname,
+                   "mail": mail,
+                   "description": description,
+                   }
+        print(newuser)
+        url = self.server + "/console/private/users"
+
+        response = self.session.post(url,
+                                     data=json.dumps(newuser),
+                                     auth=(self.username, self.password),
+                                     headers=self.headers)
+
+        if (response.status_code == 200):
+            return response.text
+        else:
+            return "Error while creating the user"
 
     def getorgs(self, uid="", filter=None):
         url = self.server + "/console/private/orgs/" + uid
         response = self.session.get(url,
                                     auth=(self.username, self.password),
-                                    headers=self.headers )
+                                    headers=self.headers)
 
         if (response.status_code == 200):
             return response.text
@@ -44,10 +66,11 @@ class Console_api:
         url = self.server + "/console/private/roles/" + uid
         response = self.session.get(url,
                                     auth=(self.username, self.password),
-                                    headers=headers )
+                                    headers=headers)
 
         if (response.status_code == 200):
             return response.text
+
 
 if __name__ == "__main__":
     # Set up your username and password:
@@ -71,5 +94,7 @@ if __name__ == "__main__":
 
     # open("testadmin2.json", "w").write(json.dumps(usertestadmin))
     print(usertestadmin["uid"])
-    print(console_API.updateuserdetails( uid=usertestadmin["uid"] ,json=json.dumps(usertestadmin)))
+    print(console_API.updateuserdetails(uid=usertestadmin["uid"], json=json.dumps(usertestadmin)))
 
+    print(console_API.createnewuser(org="PSC", sn="testapi", givenname="test", mail="testsss@georchestra.org",
+                                    description="This user was created with the api"))
