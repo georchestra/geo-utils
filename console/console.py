@@ -9,27 +9,7 @@ class Console_api:
         self.session = requests.Session()
         self.headers = {'Accept': 'application/json'}
 
-    def getusers(self, uid="", filter=None):
-        url = self.server + "/console/private/users/" + uid
-        response = self.session.get(url,
-                                    auth=(self.username, self.password),
-                                    headers=self.headers,
-                                    )
-
-        if (response.status_code == 200):
-            return response.text
-
-    def updateuserdetails(self, uid, json):
-        url = self.server + "/console/private/users/" + uid
-
-        response = self.session.put(url,
-                                    data=json,
-                                    auth=(self.username, self.password),
-                                    headers=self.headers)
-        # print(response)
-        if (response.status_code == 200):
-            return response.text
-
+    # USERS
     def createnewuser(self, org, sn, givenname, mail, description):
         newuser = {"pending": "false",
                    "org": org,
@@ -52,6 +32,66 @@ class Console_api:
         else:
             return "Error while creating the user"
 
+    def getusers(self, uid="", filter=None):
+        url = self.server + "/console/private/users/" + uid
+        response = self.session.get(url,
+                                    auth=(self.username, self.password),
+                                    headers=self.headers,
+                                    )
+
+        if (response.status_code == 200):
+            return response.text
+    def deluser(self, id):
+        url = self.server + "/console/private/users/" + id
+        response = self.session.delete(url,
+                                    auth=(self.username, self.password),
+                                    headers=self.headers,
+                                    )
+        if (response.status_code == 200):
+            return response.text
+        else:
+            return "Error while deleting the user"
+
+    def updateuserdetails(self, uid, json):
+        url = self.server + "/console/private/users/" + uid
+
+        response = self.session.put(url,
+                                    data=json,
+                                    auth=(self.username, self.password),
+                                    headers=self.headers)
+        # print(response)
+        if (response.status_code == 200):
+            return response.text
+
+    # ORGS
+    def createneworgs(self, name, shortName, orgType,
+                      address="", description="", note="",
+                      mail="", url="", b64logo="" ):
+
+        neworg = {
+            "name": name,
+            "shortName": shortName,
+            "orgType": orgType, # Association Company NGO Individual Other
+            "address": address,
+            "description": description,
+            "note": note,
+            "mail": mail,
+            "url": url,
+            "logo": b64logo
+        }
+        print(neworg)
+        url = self.server + "/console/private/orgs"
+
+        response = self.session.post(url,
+                                     data=json.dumps(neworg),
+                                     auth=(self.username, self.password),
+                                     headers=self.headers)
+
+        if (response.status_code == 200):
+            return response.text
+        else:
+            print(response.status_code)
+            return "Error while creating the org"
     def getorgs(self, uid="", filter=None):
         url = self.server + "/console/private/orgs/" + uid
         response = self.session.get(url,
@@ -61,6 +101,20 @@ class Console_api:
         if (response.status_code == 200):
             return response.text
 
+    def delorgs(self, id):
+        url = self.server + "/console/private/orgs/" + id
+        response = self.session.delete(url,
+                                       auth=(self.username, self.password),
+                                       headers=self.headers,
+                                       )
+        if (response.status_code == 200):
+            return response.text
+        else:
+            return "Error while deleting the org"
+    # def updateorgs(self):
+
+    # ROLES
+    # def createnewroles(self):
     def getroles(self, uid=""):
         headers = {'Accept': 'application/json'}
         url = self.server + "/console/private/roles/" + uid
@@ -71,6 +125,8 @@ class Console_api:
         if (response.status_code == 200):
             return response.text
 
+    # def delroles(self):
+    # def updateroles(self):
 
 if __name__ == "__main__":
     # Set up your username and password:
@@ -98,3 +154,7 @@ if __name__ == "__main__":
 
     print(console_API.createnewuser(org="PSC", sn="testapi", givenname="test", mail="testsss@georchestra.org",
                                     description="This user was created with the api"))
+    print(console_API.deluser(id="testapi"))
+
+    print(console_API.createneworgs(name="TESTAPI", shortName="testapi", orgType="Other"))
+    print(console_API.delorgs(id="testapi"))

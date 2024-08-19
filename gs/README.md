@@ -20,4 +20,4 @@ python3 create_layers_from_csv.py
 
 To change all urls store in the datadir :
 
-`sed -e "s#mel.integration.apps.gs-fr-prod.camptocamp.com#data.lillemetropole.fr#g" -i $(grep mel.integration.apps * -r -l)`
+`sed -e "s#old.domain.name#new.domain.name#g" -i $(grep old.domain.name * -r -l)`
