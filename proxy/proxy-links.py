@@ -9,13 +9,36 @@ body = """
   "query": {
     "bool": {
       "must": [],
-      "must_not": {"terms": {"resourceType": ["service","map","map/static","mapDigital"]}},
+      "must_not": {
+        "terms": {"resourceType": ["service","map","map/static","mapDigital"]}
+      },
       "should": [],
-      "filter": [{"terms": {"isTemplate": ["n"]}}]
+      "filter": [
+        {"terms": {"isTemplate": ["n"]}},
+        {
+          "nested": {
+            "path": "link",
+            "query": {
+              "bool":{
+                "must_not" : {
+                  "bool": {
+                    "must": {
+                      "term": {
+                        "link.protocol": "WWW:LINK-1.0-http--link"
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "inner_hits": {"_source" :  ["link.urlObject.default"]}
+          }
+        }
+      ]
     }
   },
   "track_total_hits": true,
-  "_source": ["link.urlObject.default"]
+  "_source": ""
 }
 """
 
@@ -32,12 +55,12 @@ def apply_template(value: str, template: str):
             .replace('DOMAIN_TPL', value.split(".")[0])
             .replace('EXTENSION_TPL', value.split(".")[1]))
 
-def get_domain(domain_pattern: str, url: str):
+def get_domain(domain_pattern: re.Pattern[str], url: str):
     if domain_pattern.search(url):
         return domain_pattern.findall(url)[0]
     return None
 
-def write_file(template: str, domains: set[str]):
+def write_file(template: str, domains: list[str]):
     with open(template, 'r') as f:
         template_content = f.read()
     file_name = template.replace('.tpl', '')
@@ -56,7 +79,7 @@ def main():
     url_pattern = re.compile(r'default[\s:\']*https?://([^/"\']*)')
     domain_pattern = re.compile(r'([^\.]+\.[a-z]+)[:\d]*$')
     urls = set(list(filter(None, url_pattern.findall(content))))
-    domains = set(filter(None, [get_domain(domain_pattern, url) for url in urls]))
+    domains = sorted(set(filter(None, [get_domain(domain_pattern, url) for url in urls])))
 
     if args.tpl is not None:
         write_file(args.tpl, domains)
