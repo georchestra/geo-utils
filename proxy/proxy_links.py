@@ -31,7 +31,7 @@ body = """
                 }
               }
             },
-            "inner_hits": {"_source" :  ["link.urlObject.default"]}
+            "inner_hits": {"_source" :  ["{0}"]}
           }
         }
       ]
@@ -41,13 +41,6 @@ body = """
   "_source": ""
 }
 """
-
-parser = argparse.ArgumentParser(description='')
-parser.add_argument('-u', '-url', '--gn-url', type=str, help='URL to search for e.g. https://dev.georchestra.org/geonetwork', required=True)
-parser.add_argument('-t', '--tpl', type=str, help='Custom output template, must contain DOMAIN_TPL and EXTENSION_TPL string inside, Default, all .tpl files in templates/', default=None)
-parser.add_argument('-wr', '--write-response', type=bool, help='Write response in file', default=False, const=True, nargs='?')
-args = parser.parse_args()
-
 
 
 def apply_template(value: str, template: str):
@@ -68,18 +61,39 @@ def write_file(template: str, domains: list[str]):
         for domain in domains:
             wf.write(apply_template(domain, template_content))
 
-def main():
-    res = requests.post(args.gn_url + '/srv/api/search/records/_search?bucket=bucket', data=body, headers={'Content-Type': 'application/json', "accept": "application/json"})
+def getDomains(gn_url: str, write_response: bool, cookie: str = '', gn_version: str = '4.2.5+'):
+    headers = {'Content-Type': 'application/json', "accept": "application/json"}
+    print(cookie)
+    if cookie:
+        headers['Cookie'] = cookie
+    es_obj = 'link.urlObject.default'
+    if gn_version != '4.2.5+':
+        es_obj = 'link.url'
 
-    if args.write_response:
+    res = requests.post(gn_url + '/srv/api/search/records/_search?bucket=bucket', data=body.replace('{0}', es_obj), headers=headers)
+
+    if write_response:
         with open('body_response.json', 'w') as wf:
             wf.write(str(res.json()))
 
     content = str(res.json())
     url_pattern = re.compile(r'default[\s:\']*https?://([^/"\']*)')
+    if gn_version != '4.2.5+':
+        url_pattern = re.compile(r'url[\s:\']*https?://([^/"\']*)')
     domain_pattern = re.compile(r'([^\.]+\.[a-z]+)[:\d]*$')
     urls = set(list(filter(None, url_pattern.findall(content))))
-    domains = sorted(set(filter(None, [get_domain(domain_pattern, url) for url in urls])))
+    return sorted(set(filter(None, [get_domain(domain_pattern, url) for url in urls])))
+
+def main():
+    parser = argparse.ArgumentParser(description='')
+    parser.add_argument('-u', '-url', '--gn-url', type=str, help='URL to search for e.g. https://dev.georchestra.org/geonetwork', required=True)
+    parser.add_argument('-t', '--tpl', type=str, help='Custom output template, must contain DOMAIN_TPL and EXTENSION_TPL string inside, Default, all .tpl files in templates/', default=None)
+    parser.add_argument('-wr', '--write-response', type=bool, help='Write response in file', default=False, const=True, nargs='?')
+    parser.add_argument('--gn-version', type=str, help='Gn Version : possible values 4- or 4.2.5+', default='4.2.5+')
+    parser.add_argument('-c', '-cookie', '--auth-cookie', type=str, help='Geonetwork auth cookie', default='')
+    args = parser.parse_args()
+
+    domains = getDomains(args.gn_url, args.write_response, args.auth_cookie, args.gn_version)
 
     if args.tpl is not None:
         write_file(args.tpl, domains)
@@ -87,7 +101,6 @@ def main():
         for x in os.listdir('templates/'):
             if x.endswith(".tpl"):
                 write_file('templates/' + x, domains)
-
 
     print('Done with', domains.__len__(), 'unique domains')
 
