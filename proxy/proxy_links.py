@@ -63,7 +63,6 @@ def write_file(template: str, domains: list[str]):
 
 def getDomains(gn_url: str, write_response: bool, cookie: str = '', gn_version: str = '4.2.5+'):
     headers = {'Content-Type': 'application/json', "accept": "application/json"}
-    print(cookie)
     if cookie:
         headers['Cookie'] = cookie
     es_obj = 'link.urlObject.default'
