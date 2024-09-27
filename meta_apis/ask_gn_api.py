@@ -93,7 +93,7 @@ class Ask_gn_api:
             return False
 
     # not working yet
-    def upload_thesaurus_dict(self, filename):
+    def add_thesaurus_dict(self, filename):
         headers = {
                    'Accept': 'application/json',
                   'X-XSRF-TOKEN': self.xsrf_token,
@@ -130,6 +130,23 @@ class Ask_gn_api:
         print("uploaded new thesaurus")
         print(response)
         print(response.text)
+
+    # not tested yet
+    # format of name [internal|external].[theme|place|...].[name]
+    def delete_thesaurus_dict(self, name):
+        headers = {'Accept': 'application/json',
+                   'X-XSRF-TOKEN': self.xsrf_token,
+                   }
+
+        url = self.server + "/geonetwork/srv/api/registries/vocabularies/" + name
+        response = self.session.delete(url,
+                                       auth=(self.username, self.password),
+                                       headers=headers,
+                                       )
+        if response.status_code == 200:
+            return response.text
+        else:
+            return "Error while deleting thesaurus"
 
     def closesession(self):
         self.session.close()
