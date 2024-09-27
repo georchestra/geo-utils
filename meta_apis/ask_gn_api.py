@@ -92,6 +92,12 @@ class Ask_gn_api:
             print(response.text)
             return False
 
+    def get_thesaurus_dict(self):
+        url = self.server + "/geonetwork/srv/fre/thesaurus?_content_type=json"
+        # no needed to authenticate this is public
+        response = self.session.get(url)
+        return json.loads(response.text)
+
     # not working yet
     def add_thesaurus_dict(self, filename):
         headers = {
@@ -131,7 +137,6 @@ class Ask_gn_api:
         print(response)
         print(response.text)
 
-    # not tested yet
     # format of name [internal|external].[theme|place|...].[name]
     def delete_thesaurus_dict(self, name):
         headers = {'Accept': 'application/json',
@@ -143,10 +148,11 @@ class Ask_gn_api:
                                        auth=(self.username, self.password),
                                        headers=headers,
                                        )
+
         if response.status_code == 200:
             return response.text
         else:
-            return "Error while deleting thesaurus"
+            return "Error while deleting thesaurus reason "+response.text
 
     def closesession(self):
         self.session.close()
@@ -187,5 +193,11 @@ if __name__ == "__main__":
                                                          )
 
     api_obj.upload_metadata(metadata=meta_to_upload_updated, uuidprocessing="OVERWRITE", publish=True)
+
+    list_thesaurus = api_obj.get_thesaurus_dict()
+
+    for thesauru in list_thesaurus[0]:
+        print("Key name : " + thesauru['key'])
+    print(api_obj.delete_thesaurus_dict("external.theme.eu.europa.language"))
 
     api_obj.closesession()
