@@ -19,15 +19,24 @@ class Ask_gn_api:
         self.username = username
         self.password = password
         self.xsrf_token = ""
+        self.session = None
+
+    def get_gnversion(self):
+        url = self.server + '/geonetwork/srv/api/site'
         self.session = requests.Session()
+        response =  requests.Session().get(url)
+        self.session.close()
+        return response.text
 
     # put this right before function
     def generate_xsfr(self):
-
+        print("toto")
         authenticate_url = self.server + '/geonetwork/srv/fre/info?type=me'
 
         # To generate the XRSF token, send a post request to the following URL: http://localhost:8080/geonetwork/srv/eng/info?type=me
-        response = self.session.post(authenticate_url)
+        self.session = requests.Session()
+        response =  self.session.post(authenticate_url)
+        self.session.close()
         # print(response.cookies)
         # Extract XRSF token
         self.xsrf_token = response.cookies.get("XSRF-TOKEN", path="/geonetwork")
@@ -37,16 +46,18 @@ class Ask_gn_api:
             print(response.text)
             print("Unable to find the XSRF token")
 
-    def getmetadataxml(self, uuid):
+    def get_metadataxml(self, uuid):
         headers = {'Accept': 'application/xml',
                    'X-XSRF-TOKEN': self.xsrf_token,
                    }
         url = self.server + "/geonetwork/srv/api/records/"+uuid
 
-        response = self.session.get(url,
+        self.session = requests.Session()
+        response =  self.session.get(url,
                                      auth=(self.username, self.password),
                                      headers=headers,
                                     )
+        self.session.close()
         if(response.status_code == 200):
             return response.text
     # possible value for uuidprocessing : NOTHING , OVERWRITE , GENERATEUUID
@@ -68,14 +79,15 @@ class Ask_gn_api:
 
         # print(username, password, xsrf_token, server, params, headers)
         # Send a put request to the endpoint
-        response = self.session.post( self.server + '/geonetwork/srv/api/records',
+        self.session = requests.Session()
+        response =  self.session.post( self.server + '/geonetwork/srv/api/records',
          json=params,
          params=params,
          auth = (self.username, self.password),
          headers=headers,
          files={'file': metadata}
          )
-
+        self.session.close()
 
         if response.status_code == 200 or response.status_code == 201 :
             answer_api = json.loads(response.text)
@@ -95,7 +107,9 @@ class Ask_gn_api:
     def get_thesaurus_dict(self):
         url = self.server + "/geonetwork/srv/fre/thesaurus?_content_type=json"
         # no needed to authenticate this is public
-        response = self.session.get(url)
+        self.session = requests.Session()
+        response =  self.session.get(url)
+        self.session.close()
         return json.loads(response.text)
 
     # not working yet
@@ -120,11 +134,13 @@ class Ask_gn_api:
         cookies = {
             'XSRF-TOKEN':self.xsrf_token,
         }
-        response = self.session.post( self.server + '/geonetwork/srv/api/registries/vocabularies?_csrf='+self.xsrf_token,
+        self.session = requests.Session()
+        response =  self.session.post( self.server + '/geonetwork/srv/api/registries/vocabularies?_csrf='+self.xsrf_token,
                                       auth=(self.username, self.password),
                                      headers=headers, cookies=cookies, data=params,
                                      files=[('file', (filename, open(filename,'rb').read(), 'application/rdf+xml'))]
                                      )
+        self.session.close()
         req = response.request
         print('{}\n{}\r\n{}\r\n\r\n{}'.format(
             '-----------START-----------',
@@ -144,11 +160,12 @@ class Ask_gn_api:
                    }
 
         url = self.server + "/geonetwork/srv/api/registries/vocabularies/" + name
-        response = self.session.delete(url,
+        self.session = requests.Session()
+        response =  self.session.delete(url,
                                        auth=(self.username, self.password),
                                        headers=headers,
                                        )
-
+        self.session.close()
         if response.status_code == 200:
             return response.text
         else:
@@ -169,19 +186,22 @@ if __name__ == "__main__":
 
     # Set up your username and password:
     username = 'testadmin'
+    username = "admin"
     password = 'testadmin'
+    password = "admin"
 
     # Set up your server and the authentication URL:
-    server = "https://georchestra-127-0-1-1.traefik.me"
+    server = "https://georchestra-127-0-1-1.traefik.me" # test with geOrchestra
+    server = "http://localhost" # test with geonetwork
     final_server = server
 
     api_obj = Ask_gn_api(server=server, username=username, password=password)
 
-
+    print(api_obj.get_gnversion())
     api_obj.generate_xsfr()
 
     # add exemple thesaurus to the GN
-    # api_obj.upload_thesaurus_dict("exemple.rdf")
+    api_obj.add_thesaurus_dict("exemple.rdf")
 
     # read / add thesaurus to sample metadata and upload metadata to the remote GN
     f = open(file_to_update)

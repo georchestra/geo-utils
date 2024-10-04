@@ -22,7 +22,7 @@ if __name__ == "__main__":
 
     geOrchestra_api = geOrchestra(server, username, password)
     geOrchestra_api.gn.generate_xsfr()
-    print(geOrchestra_api.gn.getmetadataxml("4b5f8e1b-de37-47cd-9203-37a59f318b09"))
+    print(geOrchestra_api.gn.get_metadataxml("4b5f8e1b-de37-47cd-9203-37a59f318b09"))
 
 
 
