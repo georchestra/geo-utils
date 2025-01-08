@@ -24,7 +24,7 @@ class Ask_gn_api:
     def get_gnversion(self):
         url = self.server + '/geonetwork/srv/api/site'
         self.session = requests.Session()
-        response =  requests.Session().get(url)
+        response = requests.Session().get(url, headers={'Accept': 'application/json'})
         self.session.close()
         return response.text
 
@@ -82,6 +82,7 @@ class Ask_gn_api:
         self.session = requests.Session()
         response =  self.session.post( self.server + '/geonetwork/srv/api/records',
          json=params,
+         cookies={'XSRF-TOKEN': self.xsrf_token},
          params=params,
          auth = (self.username, self.password),
          headers=headers,
