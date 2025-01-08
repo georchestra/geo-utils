@@ -10,21 +10,22 @@ if __name__ == "__main__":
 
 
 # disable https checks (for testing or development server)
-# urllib3.disable_warnings()
+urllib3.disable_warnings()
 
 
 class Ask_gn_api:
-    def __init__(self, server, username, password ):
+    def __init__(self, server, username, password,verifytls=True ):
         self.server = server
         self.username = username
         self.password = password
         self.xsrf_token = ""
         self.session = None
+        self.verifytls = verifytls
 
     def get_gnversion(self):
         url = self.server + '/geonetwork/srv/api/site'
         self.session = requests.Session()
-        response = requests.Session().get(url, headers={'Accept': 'application/json'})
+        response = requests.Session().get(url, headers={'Accept': 'application/json'}, verify=self.verifytls)
         self.session.close()
         return response.text
 
@@ -35,7 +36,7 @@ class Ask_gn_api:
 
         # To generate the XRSF token, send a post request to the following URL: http://localhost:8080/geonetwork/srv/eng/info?type=me
         self.session = requests.Session()
-        response =  self.session.post(authenticate_url)
+        response =  self.session.post(authenticate_url, verify=self.verifytls)
         self.session.close()
         # print(response.cookies)
         # Extract XRSF token
@@ -55,7 +56,7 @@ class Ask_gn_api:
         self.session = requests.Session()
         response =  self.session.get(url,
                                      auth=(self.username, self.password),
-                                     headers=headers,
+                                     headers=headers, verify=self.verifytls
                                     )
         self.session.close()
         if(response.status_code == 200):
@@ -86,7 +87,8 @@ class Ask_gn_api:
          params=params,
          auth = (self.username, self.password),
          headers=headers,
-         files={'file': metadata}
+         files={'file': metadata},
+         verify=self.verifytls
          )
         self.session.close()
 
@@ -109,7 +111,7 @@ class Ask_gn_api:
         url = self.server + "/geonetwork/srv/fre/thesaurus?_content_type=json"
         # no needed to authenticate this is public
         self.session = requests.Session()
-        response =  self.session.get(url)
+        response =  self.session.get(url, verify=self.verifytls)
         self.session.close()
         return json.loads(response.text)
 
@@ -138,7 +140,7 @@ class Ask_gn_api:
         self.session = requests.Session()
         response =  self.session.post( self.server + '/geonetwork/srv/api/registries/vocabularies?_csrf='+self.xsrf_token,
                                       auth=(self.username, self.password),
-                                     headers=headers, cookies=cookies, data=params,
+                                     headers=headers, cookies=cookies, data=params, verify=self.verifytls,
                                      files=[('file', (filename, open(filename,'rb').read(), 'application/rdf+xml'))]
                                      )
         self.session.close()
@@ -164,7 +166,7 @@ class Ask_gn_api:
         self.session = requests.Session()
         response =  self.session.delete(url,
                                        auth=(self.username, self.password),
-                                       headers=headers,
+                                       headers=headers, verify=self.verifytls
                                        )
         self.session.close()
         if response.status_code == 200:
@@ -187,16 +189,16 @@ if __name__ == "__main__":
 
     # Set up your username and password:
     username = 'testadmin'
-    username = "admin"
+    # username = "admin"
     password = 'testadmin'
-    password = "admin"
+    # password = "admin"
 
     # Set up your server and the authentication URL:
-    server = "https://georchestra-127-0-1-1.traefik.me" # test with geOrchestra
-    server = "http://localhost" # test with geonetwork
+    server = "https://georchestra-127-0-0-1.nip.io" # test with geOrchestra
+    # server = "http://localhost" # test with geonetwork
     final_server = server
 
-    api_obj = Ask_gn_api(server=server, username=username, password=password)
+    api_obj = Ask_gn_api(server=server, username=username, password=password, verifytls=False)
 
     print(api_obj.get_gnversion())
     api_obj.generate_xsfr()
