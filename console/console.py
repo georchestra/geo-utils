@@ -114,7 +114,43 @@ class Console_api:
     # def updateorgs(self):
 
     # ROLES
-    # def createnewroles(self):
+    def createnewroles(self, cn="NEWROLE", description="Default description"):
+        newrole = {
+            "cn": cn,
+            "description": description,
+        }
+        url = self.server + "/console/private/roles"
+
+        response = self.session.post(url,
+                                     data=json.dumps(newrole),
+                                     auth=(self.username, self.password),
+                                     headers=self.headers)
+
+        if (response.status_code == 200):
+            return response.text
+        else:
+            print(response.status_code)
+            return "Error while creating the role"
+
+    def updaterolesuser(self, uuid="testadmin", cn="ROLE"):
+        updateroles = {
+            "users": [uuid],
+            "PUT": [cn],
+            "DELETE": []
+        }
+        url = self.server + "/console/private/roles_users"
+
+        response = self.session.post(url,
+                                     data=json.dumps(updateroles),
+                                     auth=(self.username, self.password),
+                                     headers=self.headers)
+
+        if (response.status_code == 200):
+            return response.text
+        else:
+            print(response.status_code)
+            return "Error while updating the role's users"
+
     def getroles(self, uid=""):
         headers = {'Accept': 'application/json'}
         url = self.server + "/console/private/roles/" + uid
