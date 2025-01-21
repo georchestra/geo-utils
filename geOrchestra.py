@@ -1,8 +1,14 @@
-
-from meta_apis.ask_gn_api import Ask_gn_api
-from meta_apis.meta_manipulation import Meta_manipulation
-from console.console import Console_api
 import json
+if __name__ == "__main__":
+    # adding local file
+    from meta_apis import Ask_gn_api
+    from meta_apis.meta_manipulation import Meta_manipulation
+    from console import Console_api
+else:
+    # adding relative path
+    from .meta_apis import Ask_gn_api
+    from .meta_apis.meta_manipulation import Meta_manipulation
+    from .console import Console_api
 
 class geOrchestra:
     def __init__(self, server, username, password):
@@ -18,7 +24,7 @@ if __name__ == "__main__":
     password = 'testadmin'
 
     # Set up your server and the authentication URL:
-    server = "https://georchestra-127-0-1-1.traefik.me"
+    server = "https://georchestra-127-0-0-1.nip.io"
 
     geOrchestra_api = geOrchestra(server, username, password)
     geOrchestra_api.gn.generate_xsfr()
