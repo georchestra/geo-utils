@@ -1,0 +1,13 @@
+source,cat,params
+gemet,,url=https://raw.githubusercontent.com/geonetwork/util-gemet/master/thesauri/gemet.rdf&registryUrl=&registryType=&type=external&dir=theme
+INSPIRE themes,,url=&registryLanguage=en&registryLanguage=fr&registryUrl=https://inspire.ec.europa.eu/theme&registryType=re3gistry&type=external&dir=theme
+INSPIRE app schema register,,url=&registryLanguage=en&registryLanguage=fr&registryUrl=http://inspire.ec.europa.eu/applicationschema&registryType=re3gistry&type=external&dir=theme
+INSPIRE media types,,url=&registryLanguage=en&registryLanguage=fr&registryUrl=http://inspire.ec.europa.eu/media-types&registryType=re3gistry&type=external&dir=theme
+INSPIRE metadata codelist,procols,url=&registryLanguage=en&registryLanguage=fr&registryUrl=https://inspire.ec.europa.eu/metadata-codelist/ProtocolValue&registryType=re3gistry&type=external&dir=theme
+INSPIRE metadata codelist,spatial scopes,url=&registryLanguage=en&registryLanguage=fr&registryUrl=https://inspire.ec.europa.eu/metadata-codelist/SpatialScope&registryType=re3gistry&type=external&dir=theme
+INSPIRE metadata codelist,priority dataset,url=&registryLanguage=en&registryLanguage=fr&registryUrl=https://inspire.ec.europa.eu/metadata-codelist/PriorityDataset&registryType=re3gistry&type=external&dir=theme
+INSPIRE metadata codelist,Spatial data service cat,url=&registryLanguage=en&registryLanguage=fr&registryUrl=https://inspire.ec.europa.eu/metadata-codelist/SpatialDataServiceCategory&registryType=re3gistry&type=external&dir=theme
+INSPIRE metadata codelist,conditions applying to access and use,url=&registryLanguage=en&registryLanguage=fr&registryUrl=https://inspire.ec.europa.eu/metadata-codelist/ConditionsApplyingToAccessAndUse&registryType=re3gistry&type=external&dir=theme
+INSPIRE metadata codelist,limitations on public access,url=&registryLanguage=en&registryLanguage=fr&registryUrl=https://inspire.ec.europa.eu/metadata-codelist/LimitationsOnPublicAccess&registryType=re3gistry&type=external&dir=theme
+INSPIRE metadata codelist,online description code,url=&registryLanguage=en&registryLanguage=fr&registryUrl=https://inspire.ec.europa.eu/metadata-codelist/OnLineDescriptionCode&registryType=re3gistry&type=external&dir=theme
+INSPIRE metadata codelist,QoS criteria,url=&registryLanguage=en&registryLanguage=fr&registryUrl=https://inspire.ec.europa.eu/metadata-codelist/QualityOfServiceCriteria&registryType=re3gistry&type=external&dir=theme
