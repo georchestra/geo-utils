@@ -21,13 +21,18 @@ class Ask_gn_api:
         self.xsrf_token = ""
         self.session = None
         self.verifytls = verifytls
+        self.id_node_gn = ""
+        self.get_gnversion()
+        self.generate_xsfr()
 
     def get_gnversion(self):
         url = self.server + '/geonetwork/srv/api/site'
         self.session = requests.Session()
         response = requests.Session().get(url, headers={'Accept': 'application/json'}, verify=self.verifytls)
         self.session.close()
-        return response.text
+        rsp = json.loads(response.text)
+        self.id_node_gn = rsp["node/id"]
+        return rsp
 
     # put this right before function
     def generate_xsfr(self):
@@ -173,6 +178,45 @@ class Ask_gn_api:
             return response.text
         else:
             return "Error while deleting thesaurus reason "+response.text
+    def get_harvests(self):
+        headers = {'Accept': 'application/json',
+                   'X-XSRF-TOKEN': self.xsrf_token
+                   }
+        url = self.server + "/geonetwork/srv/fre/admin.harvester.list?_content_type=json&id=-1"
+        self.session = requests.Session()
+        response = self.session.get(url,auth=(self.username, self.password),
+                                    headers=headers, verify=self.verifytls)
+        self.session.close()
+        # print(response)
+
+        if (response.status_code == 200):
+            return json.loads(response.text)
+        else:
+            return "Error"
+
+    def make_harvest_local(self, uuid):
+        headers = {'Accept': 'application/json',
+                   'X-XSRF-TOKEN': self.xsrf_token
+                   }
+        url = self.server +"/geonetwork/srv/api/harvesters/" + uuid +"/assign?source="+ self.id_node_gn
+
+        self.session = requests.Session()
+        # can take forever to answer if there is a lot of connected metadatas to the harvest
+        # 1h timeout should be enough
+        response = self.session.post(url,
+                                     cookies={'XSRF-TOKEN': self.xsrf_token},
+                                     auth=(self.username, self.password),
+                                     headers=headers,
+                                     verify=self.verifytls, timeout=3600
+                                     )
+        self.session.close()
+
+        print(response)
+        if (response.status_code == 204):
+            return "Okay"
+        else:
+            # means the havert does not support the import of metadata (maybee empty or error
+            return False
 
     def closesession(self):
         self.session.close()

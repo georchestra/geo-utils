@@ -1,4 +1,5 @@
 import json
+import time
 if __name__ == "__main__":
     # adding local file
     from meta_apis import Ask_gn_api
@@ -32,11 +33,22 @@ if __name__ == "__main__":
 
 
 
-    usertestadmin = json.loads(geOrchestra_api.console.getusers(uid="testadmin"))
-    user_org = json.loads(geOrchestra_api.console.getorgs(uid=usertestadmin["org"]))
-    print(usertestadmin)
-    usertestadmin["orgObj"] = user_org
-    usertestadmin["description"] = "This is another test for console API"
+#    usertestadmin = json.loads(geOrchestra_api.console.getusers(uid="testadmin"))
+#    user_org = json.loads(geOrchestra_api.console.getorgs(uid=usertestadmin["org"]))
+#    print(usertestadmin)
+#    usertestadmin["orgObj"] = user_org
+#    usertestadmin["description"] = "This is another test for console API"
 
-    print(geOrchestra_api.console.updateuserdetails(uid="testadmin",json=json.dumps(usertestadmin)))
+#    print(geOrchestra_api.console.updateuserdetails(uid="testadmin",json=json.dumps(usertestadmin)))
 
+    all_havests = geOrchestra_api.gn.get_harvests()
+    # get only filesystem harvests
+    test2 = list(filter(lambda x: x["@type"] == "filesystem", all_havests))
+    # take only the activate ones
+    test3 = list(filter(lambda x: x["options"]["status"] == "active", test2)) # reverse is inactive
+    # loop to make them local
+    for harvest in test3:
+        print(harvest["site"]["uuid"])
+        print(geOrchestra_api.gn.make_harvest_local(harvest["site"]["uuid"]))
+        name = input("pass enter to continue:")
+        time.sleep(2)
