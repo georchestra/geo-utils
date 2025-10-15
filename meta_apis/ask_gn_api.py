@@ -218,6 +218,25 @@ class Ask_gn_api:
             # means the havert does not support the import of metadata (maybee empty or error
             return False
 
+    def delete_harvest(self, id):
+        headers = {'Accept': 'application/json',
+                   'X-XSRF-TOKEN': self.xsrf_token
+                   }
+        url = self.server +"/geonetwork/srv/fre/admin.harvester.remove?_content_type=json&id="+ id
+
+        self.session = requests.Session()
+
+        response = self.session.get(url,
+                                     cookies={'XSRF-TOKEN': self.xsrf_token},
+                                     auth=(self.username, self.password),
+                                     headers=headers,
+                                     verify=self.verifytls
+                                    )
+        self.session.close()
+
+        return json.loads(response.text)
+
+
     def closesession(self):
         self.session.close()
 
