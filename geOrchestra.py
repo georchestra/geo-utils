@@ -1,5 +1,7 @@
 import json
 import time
+from geoservercloud import GeoServerCloud
+
 if __name__ == "__main__":
     # adding local file
     from meta_apis import Ask_gn_api
@@ -18,7 +20,8 @@ class geOrchestra:
         self.password = password
         self.gn = Ask_gn_api(server, username, password)
         self.console = Console_api(server, username, password)
-    
+        self.geoserver = GeoServerCloud(url=server+"/geoserver/", user=username, password=password)
+
 if __name__ == "__main__":
     # Set up your username and password:
     username = 'testadmin'
@@ -33,13 +36,13 @@ if __name__ == "__main__":
 
 
 
-#    usertestadmin = json.loads(geOrchestra_api.console.getusers(uid="testadmin"))
-#    user_org = json.loads(geOrchestra_api.console.getorgs(uid=usertestadmin["org"]))
-#    print(usertestadmin)
-#    usertestadmin["orgObj"] = user_org
-#    usertestadmin["description"] = "This is another test for console API"
+    #    usertestadmin = json.loads(geOrchestra_api.console.getusers(uid="testadmin"))
+    #    user_org = json.loads(geOrchestra_api.console.getorgs(uid=usertestadmin["org"]))
+    #    print(usertestadmin)
+    #    usertestadmin["orgObj"] = user_org
+    #    usertestadmin["description"] = "This is another test for console API"
 
-#    print(geOrchestra_api.console.updateuserdetails(uid="testadmin",json=json.dumps(usertestadmin)))
+    #    print(geOrchestra_api.console.updateuserdetails(uid="testadmin",json=json.dumps(usertestadmin)))
 
     all_havests = geOrchestra_api.gn.get_harvests()
     # get only filesystem harvests
