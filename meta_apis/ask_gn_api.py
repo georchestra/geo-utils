@@ -280,7 +280,7 @@ class Ask_gn_api:
         return json.loads(response.text)
 
     def search_keyword(self, keywords):
-        url = self.server + "/geonetwork/srv/api/search/records/_search?bucket=bucket"
+        url = self.server + "/geonetwork/srv/api/search/records/_search?bucket=geoutilsbucket"
         headers = {
             "Accept": "application/json",
             "X-XSRF-TOKEN": self.xsrf_token,
@@ -334,7 +334,7 @@ class Ask_gn_api:
             headers=headers,
             verify=self.verifytls,
         )
-        self.session.close()
+        # self.session.close()
 
         if response.status_code == 200:
             return json.loads(response.text)
@@ -342,6 +342,105 @@ class Ask_gn_api:
             print(response)
             print(response.text)
             return False
+
+    def get_search_buckets(self):
+        # get all existing search buckets
+        # get /selections
+        headers = {"Accept": "application/json", "X-XSRF-TOKEN": self.xsrf_token}
+        url = self.server+ "/geonetwork/srv/api/selections"
+        #self.session = requests.Session()
+
+        response = self.session.get(
+            url,
+            cookies={"XSRF-TOKEN": self.xsrf_token},
+            auth=(self.username, self.password),
+            headers=headers,
+            verify=self.verifytls,
+        )
+        # self.session.close()
+
+        return json.loads(response.text)
+
+    def get_search_bucket(self, name):
+        # get the content of a search bucket from its name
+        headers = {"Accept": "application/json", "X-XSRF-TOKEN": self.xsrf_token}
+        url = self.server+ "/geonetwork/srv/api/selections/"+name
+        #self.session = requests.Session()
+
+        response = self.session.get(
+            url,
+            cookies={"XSRF-TOKEN": self.xsrf_token},
+            auth=(self.username, self.password),
+            headers=headers,
+            verify=self.verifytls,
+        )
+        # self.session.close()
+
+        return json.loads(response.text)
+
+    def feed_search_bucket(self,name,uuid):
+        # PUT /selections/{bucket}?uuid=123&uuid=456
+        headers = {"Accept": "application/json", "X-XSRF-TOKEN": self.xsrf_token}
+        # print(type(uuid))
+        feeduuid=""
+        if type(uuid) == str:
+            feeduuid+=uuid
+        elif type(uuid) == dict or type(uuid) == list:
+            for index, uid in enumerate(uuid):
+                # print(index, uid)
+                if index == 0:
+                    feeduuid+=uid
+                else:
+                    feeduuid+="&uuid="+uid
+        # print(feeduuid)
+        url = self.server+ "/geonetwork/srv/api/selections/"+name+"?uuid="+feeduuid
+        #self.session = requests.Session()
+        # print(url)
+
+        response = self.session.put(
+            url,
+            cookies={"XSRF-TOKEN": self.xsrf_token},
+            auth=(self.username, self.password),
+            headers=headers,
+            verify=self.verifytls,
+        )
+
+        return json.loads(response.text)
+
+    def purge_search_bucket(self, name, uuid = None):
+        headers = {"Accept": "application/json", "X-XSRF-TOKEN": self.xsrf_token}
+        if uuid is not None:
+            # print(type(uuid))
+            feeduuid = ""
+            if type(uuid) == str:
+                feeduuid += uuid
+            elif type(uuid) == dict or type(uuid) == list:
+                for index, uid in enumerate(uuid):
+                    # print(index, uid)
+                    if index == 0:
+                        feeduuid += uid
+                    else:
+                        feeduuid += "&uuid=" + uid
+            url = self.server + "/geonetwork/srv/api/selections/" + name + "?uuid=" + feeduuid
+        else:
+            url = self.server + "/geonetwork/srv/api/selections/" + name
+
+        response = self.session.delete(
+            url,
+            cookies={"XSRF-TOKEN": self.xsrf_token},
+            auth=(self.username, self.password),
+            headers=headers,
+            verify=self.verifytls,
+        )
+
+        return json.loads(response.text)
+
+    def batch_edit_search_and_replace(self, bucket_name, regex_flags, replace, search, use_regex):
+        # POST /geonetwork/srv/api/processes/db/search-and-replace?bucket=e101&diffType=&regexpFlags=mi&replace=test&search=test&useRegexp=true
+        # documentation https://docs.geonetwork-opensource.org/4.4/api/the-geonetwork-api/#loop-on-search-results-and-apply-changes-processing-and-batch-editing
+
+        return
+
 
     def closesession(self):
         self.session.close()
