@@ -14,7 +14,9 @@ urllib3.disable_warnings()
 
 
 class Ask_gn_api:
-    def __init__(self, server, username, password, verifytls=True):
+    def __init__(
+        self, server, username, password, verifytls=True, prefix_gn_url="/geonetwork"
+    ):
         self.server = server
         self.username = username
         self.password = password
@@ -22,11 +24,12 @@ class Ask_gn_api:
         self.session = None
         self.verifytls = verifytls
         self.id_node_gn = ""
+        self.prefix_gn_url = prefix_gn_url
         self.get_gnversion()
         self.generate_xsfr()
 
     def get_gnversion(self):
-        url = self.server + "/geonetwork/srv/api/site"
+        url = self.server + self.prefix_gn_url + "/srv/api/site"
         self.session = requests.Session()
         response = requests.Session().get(
             url, headers={"Accept": "application/json"}, verify=self.verifytls
@@ -38,7 +41,7 @@ class Ask_gn_api:
 
     # put this right before function
     def generate_xsfr(self):
-        authenticate_url = self.server + "/geonetwork/srv/fre/info?type=me"
+        authenticate_url = self.server + self.prefix_gn_url + "/srv/fre/info?type=me"
 
         # To generate the XRSF token, send a post request to the following URL: http://localhost:8080/geonetwork/srv/eng/info?type=me
         self.session = requests.Session()
@@ -46,7 +49,7 @@ class Ask_gn_api:
         self.session.close()
         # print(response.cookies)
         # Extract XRSF token
-        self.xsrf_token = response.cookies.get("XSRF-TOKEN", path="/geonetwork")
+        self.xsrf_token = response.cookies.get("XSRF-TOKEN", path=self.prefix_gn_url)
         if self.xsrf_token:
             print("The XSRF Token is:", self.xsrf_token)
         else:
@@ -58,7 +61,7 @@ class Ask_gn_api:
             "Accept": "application/xml",
             "X-XSRF-TOKEN": self.xsrf_token,
         }
-        url = self.server + "/geonetwork/srv/api/records/" + uuid
+        url = self.server + self.prefix_gn_url + "/srv/api/records/" + uuid
 
         self.session = requests.Session()
         response = self.session.get(
@@ -95,7 +98,7 @@ class Ask_gn_api:
         # Send a put request to the endpoint
         self.session = requests.Session()
         response = self.session.post(
-            self.server + "/geonetwork/srv/api/records",
+            self.server + self.prefix_gn_url + "/srv/api/records",
             json=params,
             cookies={"XSRF-TOKEN": self.xsrf_token},
             params=params,
@@ -111,7 +114,8 @@ class Ask_gn_api:
             print(
                 "Upload metadatahere : "
                 + self.server
-                + "/geonetwork/srv/fre/catalog.search#/metadata/"
+                + self.prefix_gn_url
+                + "/srv/fre/catalog.search#/metadata/"
                 + answer_api["metadataInfos"][list(answer_api["metadataInfos"])[0]][0][
                     "uuid"
                 ]
@@ -128,7 +132,7 @@ class Ask_gn_api:
             return False
 
     def get_thesaurus_dict(self):
-        url = self.server + "/geonetwork/srv/fre/thesaurus?_content_type=json"
+        url = self.server + self.prefix_gn_url + "/srv/fre/thesaurus?_content_type=json"
         # no needed to authenticate this is public
         self.session = requests.Session()
         response = self.session.get(url, verify=self.verifytls)
@@ -141,7 +145,10 @@ class Ask_gn_api:
             "Accept": "application/json",
             "X-XSRF-TOKEN": self.xsrf_token,
             "Origin": "http://" + self.server,
-            "Referer": "http://" + self.server + "/geonetwork/srv/fre/admin.console",
+            "Referer": "http://"
+            + self.server
+            + self.prefix_gn_url
+            + "/srv/fre/admin.console",
         }  #
 
         # Set the parameters
@@ -160,7 +167,8 @@ class Ask_gn_api:
         self.session = requests.Session()
         response = self.session.post(
             self.server
-            + "/geonetwork/srv/api/registries/vocabularies?_csrf="
+            + self.prefix_gn_url
+            + "/srv/api/registries/vocabularies?_csrf="
             + self.xsrf_token,
             auth=(self.username, self.password),
             headers=headers,
@@ -193,7 +201,12 @@ class Ask_gn_api:
             "X-XSRF-TOKEN": self.xsrf_token,
         }
 
-        url = self.server + "/geonetwork/srv/api/registries/vocabularies/" + name
+        url = (
+            self.server
+            + self.prefix_gn_url
+            + "/srv/api/registries/vocabularies/"
+            + name
+        )
         self.session = requests.Session()
         response = self.session.delete(
             url,
@@ -211,7 +224,8 @@ class Ask_gn_api:
         headers = {"Accept": "application/json", "X-XSRF-TOKEN": self.xsrf_token}
         url = (
             self.server
-            + "/geonetwork/srv/fre/admin.harvester.list?_content_type=json&id=-1"
+            + self.prefix_gn_url
+            + "/srv/fre/admin.harvester.list?_content_type=json&id=-1"
         )
         self.session = requests.Session()
         response = self.session.get(
@@ -232,7 +246,8 @@ class Ask_gn_api:
         headers = {"Accept": "application/json", "X-XSRF-TOKEN": self.xsrf_token}
         url = (
             self.server
-            + "/geonetwork/srv/api/harvesters/"
+            + self.prefix_gn_url
+            + "/srv/api/harvesters/"
             + uuid
             + "/assign?source="
             + self.id_node_gn
@@ -262,7 +277,8 @@ class Ask_gn_api:
         headers = {"Accept": "application/json", "X-XSRF-TOKEN": self.xsrf_token}
         url = (
             self.server
-            + "/geonetwork/srv/fre/admin.harvester.remove?_content_type=json&id="
+            + self.prefix_gn_url
+            + "/srv/fre/admin.harvester.remove?_content_type=json&id="
             + id
         )
 
@@ -282,13 +298,17 @@ class Ask_gn_api:
     def search_keyword(self, keywords):
         url = (
             self.server
-            + "/geonetwork/srv/api/search/records/_search?bucket=geoutilsbucket"
+            + self.prefix_gn_url
+            + "/srv/api/search/records/_search?bucket=geoutilsbucket"
         )
         headers = {
             "Accept": "application/json",
             "X-XSRF-TOKEN": self.xsrf_token,
             "Origin": "http://" + self.server,
-            "Referer": "http://" + self.server + "/geonetwork/srv/fre/admin.console",
+            "Referer": "http://"
+            + self.server
+            + self.prefix_gn_url
+            + "/srv/fre/admin.console",
         }
         params = {
             "aggregations": {},
@@ -349,7 +369,7 @@ class Ask_gn_api:
         # get all existing search buckets
         # get /selections
         headers = {"Accept": "application/json", "X-XSRF-TOKEN": self.xsrf_token}
-        url = self.server + "/geonetwork/srv/api/selections"
+        url = self.server + self.prefix_gn_url + "/srv/api/selections"
 
         response = self.session.get(
             url,
@@ -364,7 +384,7 @@ class Ask_gn_api:
     def get_search_bucket(self, name):
         # get the content of a search bucket from its name
         headers = {"Accept": "application/json", "X-XSRF-TOKEN": self.xsrf_token}
-        url = self.server + "/geonetwork/srv/api/selections/" + name
+        url = self.server + self.prefix_gn_url + "/srv/api/selections/" + name
 
         response = self.session.get(
             url,
@@ -392,7 +412,12 @@ class Ask_gn_api:
                     feeduuid += "&uuid=" + uid
         # print(feeduuid)
         url = (
-            self.server + "/geonetwork/srv/api/selections/" + name + "?uuid=" + feeduuid
+            self.server
+            + self.prefix_gn_url
+            + "/srv/api/selections/"
+            + name
+            + "?uuid="
+            + feeduuid
         )
 
         response = self.session.put(
@@ -421,13 +446,14 @@ class Ask_gn_api:
                         feeduuid += "&uuid=" + uid
             url = (
                 self.server
-                + "/geonetwork/srv/api/selections/"
+                + self.prefix_gn_url
+                + "/srv/api/selections/"
                 + name
                 + "?uuid="
                 + feeduuid
             )
         else:
-            url = self.server + "/geonetwork/srv/api/selections/" + name
+            url = self.server + self.prefix_gn_url + "/srv/api/selections/" + name
 
         response = self.session.delete(
             url,
@@ -462,13 +488,20 @@ class Ask_gn_api:
         headers = {"Accept": "application/json", "X-XSRF-TOKEN": self.xsrf_token}
         url = (
             self.server
-            + "/geonetwork/srv/api/processes/db/search-and-replace?bucket=" + bucket_name
+            + self.prefix_gn_url
+            + "/srv/api/processes/db/search-and-replace?bucket="
+            + bucket_name
             + "&diffType="
-            + "&regexpFlags=" + regex_flags
-            + "&replace=" + replace
-            + "&search=" + search
-            + "&useRegexp=" + use_regex
-            + "&updateDateStamp=" + update_date_stamp
+            + "&regexpFlags="
+            + regex_flags
+            + "&replace="
+            + replace
+            + "&search="
+            + search
+            + "&useRegexp="
+            + use_regex
+            + "&updateDateStamp="
+            + update_date_stamp
         )
         params = {"headers": {"accept": "application/xml"}}
 
