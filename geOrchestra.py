@@ -1,6 +1,6 @@
 import json
 import time
-from geoservercloud import GeoServerCloud
+# from geoservercloud import GeoServerCloud
 
 if __name__ == "__main__":
     # adding local file
@@ -21,9 +21,9 @@ class geOrchestra:
         self.password = password
         self.gn = Ask_gn_api(server, username, password)
         self.console = Console_api(server, username, password)
-        self.geoserver = GeoServerCloud(
-            url=server + "/geoserver/", user=username, password=password
-        )
+        # self.geoserver = GeoServerCloud(
+        #     url=server + "/geoserver/", user=username, password=password
+        # )
 
 
 if __name__ == "__main__":

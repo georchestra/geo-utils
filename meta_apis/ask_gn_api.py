@@ -121,15 +121,16 @@ class Ask_gn_api:
                 ]
             )
             # print(answer_api)
-            return answer_api
-        elif response.status_code == 400:
+            return True, answer_api
+        elif response.status_code == 400 :
             answer_api = json.loads(response.text)
             print(answer_api)
-            return False
+            return False, answer_api
         else:
             print(response)
             print(response.text)
-            return False
+            raise Exception(f"Échec Geonetwork ({response.status_code}) : {response.text}")
+            return False, response.text
 
     def get_thesaurus_dict(self):
         url = self.server + self.prefix_gn_url + "/srv/fre/thesaurus?_content_type=json"
