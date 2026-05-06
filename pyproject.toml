@@ -1,0 +1,26 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+packages = ["geOrchestra"]
+
+[project]
+name = "geOrchestra"
+version = "0.1.0"
+authors = [
+  { name="Jean-Michel Crepel", email="jeanmi151@protonmail.com" },
+]
+description = "A collection of geospatial utility scripts"
+readme = "README.md"
+requires-python = ">=3.9"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Operating System :: OS Independent",
+]
+# List ONLY easy-to-install libraries here
+dependencies = [
+    "requests",
+    "python-dotenv",
+    "geoservercloud",
+]

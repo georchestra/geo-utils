@@ -1,17 +1,11 @@
 import json
 import time
 from geoservercloud import GeoServerCloud
+# adding local file
+from meta_apis import Ask_gn_api
+from meta_apis.meta_manipulation import Meta_manipulation
+from console import Console_api
 
-if __name__ == "__main__":
-    # adding local file
-    from meta_apis import Ask_gn_api
-    from meta_apis.meta_manipulation import Meta_manipulation
-    from console import Console_api
-else:
-    # adding relative path
-    from .meta_apis import Ask_gn_api
-    from .meta_apis.meta_manipulation import Meta_manipulation
-    from .console import Console_api
 
 
 class geOrchestra:

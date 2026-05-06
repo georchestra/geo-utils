@@ -1,0 +1,61 @@
+*.log
+*.tmp
+*~
+*.bak
+.env
+*.env
+.env.*
+venv/
+*.local
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+pypackages/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+share/python-wheels/
+*.egg-info/
+
+.installed.cfg
+*.egg
+MANIFEST
+.venv
+env/
+venv/
+ENV/
+.pytest_cache/
+.coverage
+# PyInstaller
+*.manifest
+*.spec
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+# PyBuilder
+.pybuilder/
+target/
+# Jupyter Notebook
+.ipynb_checkpoints
+# IPython
+profile_default/
+ipython_config.py
+__pypackages__/
+# mkdocs
+/site
+.idea/
+.idea_modules/
+out/
+.idea_backup/
+*.swp
+*.swo
+*.swn
+*.swm
+.swap/
+.vim-bookmarks
+.vimsession
