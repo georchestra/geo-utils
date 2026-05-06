@@ -1,10 +1,8 @@
 import json
 import time
 from geoservercloud import GeoServerCloud
-# adding local file
-from meta_apis import Ask_gn_api
-from meta_apis.meta_manipulation import Meta_manipulation
-from console import Console_api
+from geOrchestra.meta_apis import Ask_gn_api, Meta_manipulation
+from geOrchestra.console import Console_api
 
 
 
