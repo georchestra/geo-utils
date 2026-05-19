@@ -13,7 +13,7 @@ if __name__ == "__main__":
 urllib3.disable_warnings()
 
 
-class Ask_gn_api:
+class GN_API:
     def __init__(
         self, server, username, password, verifytls=True, prefix_gn_url="/geonetwork"
     ):
@@ -541,7 +541,7 @@ if __name__ == "__main__":
     # server = "http://localhost" # test with geonetwork
     final_server = server
 
-    api_obj = Ask_gn_api(
+    api_obj = GN_API(
         server=server, username=username, password=password, verifytls=False
     )
 

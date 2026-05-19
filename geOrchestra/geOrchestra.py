@@ -1,7 +1,7 @@
 import json
 import time
 from geoservercloud import GeoServerCloud
-from geOrchestra.meta_apis import Ask_gn_api, Meta_manipulation
+from geOrchestra.meta_apis import GN_API, Meta_manipulation
 from geOrchestra.console import Console_api
 
 
@@ -11,7 +11,7 @@ class geOrchestra:
         self.server = server
         self.username = username
         self.password = password
-        self.gn = Ask_gn_api(server, username, password)
+        self.gn = GN_API(server, username, password)
         self.console = Console_api(server, username, password)
         self.geoserver = GeoServerCloud(
             url=server + "/geoserver/", user=username, password=password
