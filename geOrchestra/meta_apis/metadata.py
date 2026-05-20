@@ -82,6 +82,7 @@ class ThesaurusKeyword:
 
 class Metadata:
     def __init__(self, xml_string: str = ""):
+        # could read ns from here and create ns = { "gco": "http://standards.iso.org/iso/19115/-3/gco/1.0",...etc}
         try:
             self.meta = ET.fromstring(xml_string.encode("utf-8"))
         except Exception as e:
@@ -140,26 +141,64 @@ class Metadata:
     def search_and_replace(self, search, replace):
         pass
 
-    def update_value_xpath(self, xpath, value):
-        pass
+    def update_value_xpath(self, ns: dict, xpath: str, value: str = ""):
+        if self.meta is not None:
+            elements = self.meta.xpath(xpath, namespaces=ns)
+            if not elements:
+                print(f"XPath Not found: {xpath}")
+                return
+
+            target_element = elements[0]
+
+            try:
+                fragment_to_add = ET.fromstring(value)
+                parent = target_element.getparent()
+                if parent is not None:
+                    # On insère le nouveau fragment juste avant l'ancien
+                    target_element.addnext(fragment_to_add)
+                    # On supprime l'ancien élément
+                    parent.remove(target_element)
+                    print("Okay good")
+                else:
+                    print("Can't replace parent, because it is the root")
+
+            except Exception as e:
+                # mean not xml content of value
+                target_element.text = value
+                # clearing childrens
+                for child in target_element.getchildren():
+                    target_element.remove(child)
+                print("Okay good")
 
 
 if __name__ == "__main__":
-    from metadata import Thesaurus_keyword, Metadata
     from gn_api import GN_API
 
     gn = GN_API(
         server="http://localhost:8080", username="testadmin", password="testadmin"
     )
-    ofb = gn.get_thesaurus_dict("local.theme.geographie")
-    mayotte = gn.search_thesaurus_dict(keyword="Mayotte")[0]
+    geo = gn.get_thesaurus_dict("local.theme.geographie")
+    mayotte = gn.searchin_thesaurus_dict(keyword="Mayotte")[0]
 
     meta = Metadata()
     meta.load_from_file("./sample_meta2.xml")
-    t = Thesaurus_keyword()
-    t.load_from_json_get_thesaurus_dict(ofb)
+    t = ThesaurusKeyword()
+    t.load_from_json_get_thesaurus_dict(geo)
     t.load_from_json_search_thesaurus_dict(mayotte)
 
     meta.add_thesaurus_to_metadata(t)
-
+    ns = {
+        "mdb": "http://standards.iso.org/iso/19115/-3/mdb/2.0",
+        "mri": "http://standards.iso.org/iso/19115/-3/mri/1.0",
+        "cit": "http://standards.iso.org/iso/19115/-3/cit/2.0",
+        "mcc": "http://standards.iso.org/iso/19115/-3/mcc/1.0",
+        "gco": "http://standards.iso.org/iso/19115/-3/gco/1.0",
+    }
+    # meta.update_value_xpath(ns=ns,xpath="/mdb:MD_Metadata/mdb:identificationInfo/mri:MD_DataIdentification/mri:citation/cit:CI_Citation/cit:identifier/mcc:MD_Identifier/mcc:code",
+    #                         value='<gco:CharacterString xmlns:gco="http://standards.iso.org/iso/19115/-3/gco/1.0" >mdlkfsdmflkdsftest</gco:CharacterString>')
+    meta.update_value_xpath(
+        ns=ns,
+        xpath="/mdb:MD_Metadata/mdb:identificationInfo/mri:MD_DataIdentification/mri:citation/cit:CI_Citation/cit:identifier/mcc:MD_Identifier/mcc:code/gco:CharacterString",
+        value="testnewidentifier",
+    )
     meta.save_into_file("./sample_meta3.xml")
