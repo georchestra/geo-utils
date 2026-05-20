@@ -82,11 +82,24 @@ class ThesaurusKeyword:
 
 class Metadata:
     def __init__(self, xml_string: str = ""):
-        # could read ns from here and create ns = { "gco": "http://standards.iso.org/iso/19115/-3/gco/1.0",...etc}
         try:
             self.meta = ET.fromstring(xml_string.encode("utf-8"))
+            # reading ns from xml and create ns = { "gco": "http://standards.iso.org/iso/19115/-3/gco/1.0",...etc}
+            self.ns = self._get_dynamic_namespaces()
         except Exception as e:
             self.meta = None
+
+    def _get_dynamic_namespaces(self) -> dict:
+        """
+        Explore XML to get all namespace
+        """
+        namespaces = {}
+        for prefix, uri in self.meta.xpath("//namespace::*"):
+            if prefix is None:
+                namespaces["default"] = uri
+            else:
+                namespaces[prefix] = uri
+        return namespaces
 
     def to_string(self):
         if self.meta is not None:
@@ -102,31 +115,17 @@ class Metadata:
         with open(filename_path, "r", encoding="utf-8") as f:
             meta_xml = f.read()
         self.meta = ET.fromstring(meta_xml.encode("utf-8"))
+        self.ns = self._get_dynamic_namespaces()
 
     def add_thesaurus_to_metadata(self, thesaurus: ThesaurusKeyword):
         if self.meta is not None:
             xpath = "/mdb:MD_Metadata/mdb:identificationInfo/mri:MD_DataIdentification"
             # "/mdb:MD_Metadata/mdb:identificationInfo/mri:MD_DataIdentification/mri:descriptiveKeywords[4]"
-            ns = {
-                "mdb": "http://standards.iso.org/iso/19115/-3/mdb/2.0",
-                "mri": "http://standards.iso.org/iso/19115/-3/mri/1.0",
-            }
-            elements = self.meta.xpath(xpath, namespaces=ns)
+            elements = self.meta.xpath(xpath, namespaces=self.ns)
             if not elements:
                 print("XPath Not found")
             else:
-                ns2 = {
-                    "mri": "http://standards.iso.org/iso/19115/-3/mri/1.0",
-                    "mdb": "http://standards.iso.org/iso/19115/-3/mdb/2.0",
-                    "mrs": "http://standards.iso.org/iso/19115/-3/mrs/1.0",
-                    "mcc": "http://standards.iso.org/iso/19115/-3/mcc/1.0",
-                    "gco": "http://standards.iso.org/iso/19115/-3/gco/1.0",
-                    "gcx": "http://standards.iso.org/iso/19115/-3/gcx/1.0",
-                    "xlink": "http://www.w3.org/1999/xlink",
-                }
-
                 fragment_to_add = ET.fromstring(thesaurus.to_xml())
-
                 if fragment_to_add is not None:
                     target_element = elements[0]
                     target_element.append(fragment_to_add)
@@ -141,22 +140,21 @@ class Metadata:
     def search_and_replace(self, search, replace):
         pass
 
-    def update_value_xpath(self, ns: dict, xpath: str, value: str = ""):
+    def append_value_xpath(self, xpath, value):
+        pass
+
+    def update_value_xpath(self, xpath: str, value: str = ""):
         if self.meta is not None:
-            elements = self.meta.xpath(xpath, namespaces=ns)
+            elements = self.meta.xpath(xpath, namespaces=self.ns)
             if not elements:
                 print(f"XPath Not found: {xpath}")
                 return
-
             target_element = elements[0]
-
             try:
                 fragment_to_add = ET.fromstring(value)
                 parent = target_element.getparent()
                 if parent is not None:
-                    # On insère le nouveau fragment juste avant l'ancien
                     target_element.addnext(fragment_to_add)
-                    # On supprime l'ancien élément
                     parent.remove(target_element)
                     print("Okay good")
                 else:
@@ -177,7 +175,7 @@ if __name__ == "__main__":
     gn = GN_API(
         server="http://localhost:8080", username="testadmin", password="testadmin"
     )
-    geo = gn.get_thesaurus_dict("local.theme.geographie")
+    geo = gn.get_thesaurus_dict("local.theme.geographie-ofb")
     mayotte = gn.searchin_thesaurus_dict(keyword="Mayotte")[0]
 
     meta = Metadata()
@@ -187,17 +185,9 @@ if __name__ == "__main__":
     t.load_from_json_search_thesaurus_dict(mayotte)
 
     meta.add_thesaurus_to_metadata(t)
-    ns = {
-        "mdb": "http://standards.iso.org/iso/19115/-3/mdb/2.0",
-        "mri": "http://standards.iso.org/iso/19115/-3/mri/1.0",
-        "cit": "http://standards.iso.org/iso/19115/-3/cit/2.0",
-        "mcc": "http://standards.iso.org/iso/19115/-3/mcc/1.0",
-        "gco": "http://standards.iso.org/iso/19115/-3/gco/1.0",
-    }
-    # meta.update_value_xpath(ns=ns,xpath="/mdb:MD_Metadata/mdb:identificationInfo/mri:MD_DataIdentification/mri:citation/cit:CI_Citation/cit:identifier/mcc:MD_Identifier/mcc:code",
+    # meta.update_value_xpath(xpath="/mdb:MD_Metadata/mdb:identificationInfo/mri:MD_DataIdentification/mri:citation/cit:CI_Citation/cit:identifier/mcc:MD_Identifier/mcc:code",
     #                         value='<gco:CharacterString xmlns:gco="http://standards.iso.org/iso/19115/-3/gco/1.0" >mdlkfsdmflkdsftest</gco:CharacterString>')
     meta.update_value_xpath(
-        ns=ns,
         xpath="/mdb:MD_Metadata/mdb:identificationInfo/mri:MD_DataIdentification/mri:citation/cit:CI_Citation/cit:identifier/mcc:MD_Identifier/mcc:code/gco:CharacterString",
         value="testnewidentifier",
     )
