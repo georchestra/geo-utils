@@ -76,7 +76,11 @@ class GN_API:
 
     # possible value for uuidprocessing : NOTHING , OVERWRITE , GENERATEUUID
     def upload_metadata(
-        self, metadata, groupid="100", uuidprocessing="GENERATEUUID", publish=False
+        self,
+        metadata,
+        groupid: str = "100",
+        uuidprocessing: str = "GENERATEUUID",
+        publish: bool = False,
     ):
         headers = {
             "Accept": "application/json",
@@ -131,11 +135,35 @@ class GN_API:
             print(response.text)
             return False
 
-    def get_thesaurus_dict(self):
+    def get_thesaurus_dict(self, thesaurus_key=None):
         url = self.server + self.prefix_gn_url + "/srv/fre/thesaurus?_content_type=json"
         # no needed to authenticate this is public
         self.session = requests.Session()
         response = self.session.get(url, verify=self.verifytls)
+        self.session.close()
+        if thesaurus_key is None:
+            return json.loads(response.text)[0]
+        else:
+            for th in json.loads(response.text)[0]:
+                if th["key"] == thesaurus_key:
+                    return th
+
+    def searchin_thesaurus_dict(self, keyword: str = "", thesaurus_key=False):
+        url = f"{self.server}{self.prefix_gn_url}/srv/api/registries/vocabularies/search?q={keyword}&lang=fre&rows=10&start=0"
+
+        if isinstance(thesaurus_key, str):
+            url += f"&thesaurus={thesaurus_key}"
+        if isinstance(thesaurus_key, list) or isinstance(thesaurus_key, dict):
+            for key in thesaurus_key:
+                url += f"&thesaurus={key}"
+        if isinstance(thesaurus_key, bool):
+            # select all thesaurus
+            for th in self.get_thesaurus_dict():
+                url += f"&thesaurus={th['key']}"
+        # no needed to authenticate this is public
+        headers = {"Accept": "application/json", "X-XSRF-TOKEN": self.xsrf_token}
+        self.session = requests.Session()
+        response = self.session.get(url, headers=headers, verify=self.verifytls)
         self.session.close()
         return json.loads(response.text)
 
