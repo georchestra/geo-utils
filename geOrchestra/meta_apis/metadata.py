@@ -143,6 +143,17 @@ class Metadata:
     def append_value_xpath(self, xpath, value):
         pass
 
+    def get_value_xpath(self, xpath, custom_namespaces=None):
+        if self.meta is not None:
+            if custom_namespaces is None:
+                elements = self.meta.xpath(xpath, namespaces=self.ns)
+            else:
+                elements = self.meta.xpath(xpath, namespaces=custom_namespaces)
+            if not elements:
+                print(f"XPath Not found: {xpath}")
+                return
+            return ET.tostring(elements[0], pretty_print=True, encoding="unicode")
+
     def update_value_xpath(self, xpath: str, value: str = ""):
         if self.meta is not None:
             elements = self.meta.xpath(xpath, namespaces=self.ns)

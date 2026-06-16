@@ -46,13 +46,16 @@ class GN_API:
         authenticate_url = self.server + self.prefix_gn_url + "/srv/fre/info?type=me"
 
         # To generate the XRSF token, send a post request to the following URL: http://localhost:8080/geonetwork/srv/eng/info?type=me
-        self.session = requests.Session()
+
+        if not self.session:
+            self.session = requests.Session()
         response = self.session.post(authenticate_url, verify=self.verifytls)
         self.session.close()
         # print(response.cookies)
         # Extract XRSF token
-        self.xsrf_token = response.cookies.get("XSRF-TOKEN", path=self.prefix_gn_url)
-        if self.xsrf_token:
+        tmp_xsrf = response.cookies.get("XSRF-TOKEN", path=self.prefix_gn_url)
+        if tmp_xsrf:
+            self.xsrf_token = tmp_xsrf
             print("The XSRF Token is:", self.xsrf_token)
         else:
             print(response.text)
@@ -617,6 +620,22 @@ class GN_API:
             verify=self.verifytls,
         )
 
+        return json.loads(response.text)
+    # action = ['replace', 'add', 'delete' ]
+    def batch_edit_xpath(self, bucket_name, xpath , value, update_timestamps: bool = False,  action='replace', condition=""):
+        headers = {"Accept": "application/json", "X-XSRF-TOKEN": self.xsrf_token}
+        url = self.server + self.prefix_gn_url + f"/srv/api/records/batchediting?bucket={bucket_name}&diffType=&updateDateStamp={str(update_timestamps).lower()}"
+        params = {"headers": {"accept": "application/xml"}, }
+        build_xpath = [{'xpath': xpath, 'condition': condition, 'value': f"<gn_{action}>{value}</gn_{action}>"}]
+        response = self.session.put(
+            url,
+            json=params,
+            cookies={"XSRF-TOKEN": self.xsrf_token},
+            params=params, content=build_xpath,
+            auth=(self.username, self.password),
+            headers=headers,
+            verify=self.verifytls,
+        )
         return json.loads(response.text)
 
     def closesession(self):
