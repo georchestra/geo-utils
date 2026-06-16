@@ -36,7 +36,6 @@ class GN_API:
         response = requests.Session().get(
             url, headers={"Accept": "application/json"}, verify=self.verifytls
         )
-        self.session.close()
         rsp = json.loads(response.text)
         self.id_node_gn = rsp["node/id"]
         return rsp
@@ -50,7 +49,6 @@ class GN_API:
         if not self.session:
             self.session = requests.Session()
         response = self.session.post(authenticate_url, verify=self.verifytls)
-        self.session.close()
         # print(response.cookies)
         # Extract XRSF token
         tmp_xsrf = response.cookies.get("XSRF-TOKEN", path=self.prefix_gn_url)
@@ -75,7 +73,6 @@ class GN_API:
             "Accept": "application/xml",
             "X-XSRF-TOKEN": self.xsrf_token,
         }
-        self.session = requests.Session()
         response = self.session.get(
             url,
             auth=(self.username, self.password),
@@ -130,7 +127,6 @@ class GN_API:
                 time.sleep(0.1)
             return meta_list_to_return
         else:
-            self.session.close()
             return None
 
     def get_metadataxml(self, uuid):
@@ -140,14 +136,12 @@ class GN_API:
         }
         url = self.server + self.prefix_gn_url + "/srv/api/records/" + uuid
 
-        self.session = requests.Session()
         response = self.session.get(
             url,
             auth=(self.username, self.password),
             headers=headers,
             verify=self.verifytls,
         )
-        self.session.close()
         if response.status_code == 200:
             return response.text
 
@@ -172,8 +166,6 @@ class GN_API:
             "group": groupid,
             "publishToAll": str(publish).lower(),
         }
-
-        # session = requests.Session()
 
         # print(username, password, xsrf_token, server, params, headers)
         # Send a put request to the endpoint
@@ -629,9 +621,9 @@ class GN_API:
         build_xpath = [{'xpath': xpath, 'condition': condition, 'value': f"<gn_{action}>{value}</gn_{action}>"}]
         response = self.session.put(
             url,
-            json=params,
+            json=build_xpath,
             cookies={"XSRF-TOKEN": self.xsrf_token},
-            params=params, content=build_xpath,
+            params=params,
             auth=(self.username, self.password),
             headers=headers,
             verify=self.verifytls,
