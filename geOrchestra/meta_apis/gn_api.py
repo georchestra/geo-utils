@@ -3,6 +3,8 @@ import requests
 import re
 import urllib3
 import sys
+import xmltodict
+import time
 
 if __name__ == "__main__":
     # adding local file
@@ -55,6 +57,78 @@ class GN_API:
         else:
             print(response.text)
             print("Unable to find the XSRF token")
+
+    def get_all_catalog(self):
+        # using CSW url /geonetwork/srv/fre/csw?service=CSW&version=2.0.2&request=GetRecords&typeNames=csw:Record&resultType=results&elementSetName=brief&maxRecords=10&startPosition=1
+        # get number of total records
+        url = (
+            self.server
+            + self.prefix_gn_url
+            + "/srv/fre/csw"
+            + "?service=CSW&version=2.0.2&request=GetRecords&typeNames=csw:Record&resultType=results&elementSetName=brief&maxRecords=1&startPosition=1"
+        )
+
+        headers = {
+            "Accept": "application/xml",
+            "X-XSRF-TOKEN": self.xsrf_token,
+        }
+        self.session = requests.Session()
+        response = self.session.get(
+            url,
+            auth=(self.username, self.password),
+            headers=headers,
+            verify=self.verifytls,
+        )
+
+        if response.status_code == 200:
+
+            meta_list_to_return = []
+
+            root = xmltodict.parse(response.text)
+            # search_results = root.find('csw:SearchResults')
+            number_of_records_matched = int(
+                root["csw:GetRecordsResponse"]["csw:SearchResults"][
+                    "@numberOfRecordsMatched"
+                ]
+            )
+            number_of_records_returned = int(
+                root["csw:GetRecordsResponse"]["csw:SearchResults"][
+                    "@numberOfRecordsReturned"
+                ]
+            )
+            steps = 10
+            startPage = 1
+            for i in range(startPage, number_of_records_matched, steps):
+                url_meta = (
+                    self.server
+                    + self.prefix_gn_url
+                    + "/srv/fre/csw"
+                    + f"?service=CSW&version=2.0.2&request=GetRecords&typeNames=csw:Record&resultType=results&elementSetName=brief&maxRecords={steps}&startPosition={i}"
+                )
+                response_meta = self.session.get(
+                    url_meta,
+                    auth=(self.username, self.password),
+                    headers=headers,
+                    verify=self.verifytls,
+                )
+                if response_meta.status_code == 200:
+
+                    list_meta = xmltodict.parse(response_meta.text)
+                    for meta in list_meta["csw:GetRecordsResponse"][
+                        "csw:SearchResults"
+                    ]["csw:BriefRecord"]:
+                        if type(meta["dc:identifier"]) == dict:
+                            meta_list_to_return.append(meta["dc:identifier"]["#text"])
+                        elif type(meta["dc:identifier"]) == str:
+                            meta_list_to_return.append(meta["dc:identifier"])
+                else:
+                    return None
+                # slow down a bit
+                time.sleep(0.1)
+            return meta_list_to_return
+        else:
+            self.session.close()
+            return None
 
     def get_metadataxml(self, uuid):
         headers = {

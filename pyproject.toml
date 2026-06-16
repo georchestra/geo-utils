@@ -8,7 +8,7 @@ packages = ["geOrchestra", "geOrchestra.console", "geOrchestra.meta_apis"]
 
 [project]
 name = "geOrchestra"
-version = "0.1.0"
+version = "0.1.1"
 authors = [
   { name="Jean-Michel Crepel", email="jeanmi151@protonmail.com" },
 ]
