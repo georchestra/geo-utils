@@ -23,7 +23,8 @@ class GN_API:
         self.username = username
         self.password = password
         self.xsrf_token = ""
-        self.session = None
+        self.session = requests.Session()
+        self.session.auth = (username, password)
         self.verifytls = verifytls
         self.id_node_gn = ""
         self.prefix_gn_url = prefix_gn_url
@@ -32,7 +33,7 @@ class GN_API:
 
     def get_gnversion(self):
         url = self.server + self.prefix_gn_url + "/srv/api/site"
-        self.session = requests.Session()
+
         response = requests.Session().get(
             url, headers={"Accept": "application/json"}, verify=self.verifytls
         )
@@ -46,8 +47,6 @@ class GN_API:
 
         # To generate the XRSF token, send a post request to the following URL: http://localhost:8080/geonetwork/srv/eng/info?type=me
 
-        if not self.session:
-            self.session = requests.Session()
         response = self.session.post(authenticate_url, verify=self.verifytls)
         # print(response.cookies)
         # Extract XRSF token
@@ -169,7 +168,6 @@ class GN_API:
 
         # print(username, password, xsrf_token, server, params, headers)
         # Send a put request to the endpoint
-        self.session = requests.Session()
         response = self.session.post(
             self.server + self.prefix_gn_url + "/srv/api/records",
             json=params,
@@ -180,7 +178,7 @@ class GN_API:
             files={"file": metadata},
             verify=self.verifytls,
         )
-        self.session.close()
+
 
         if response.status_code == 200 or response.status_code == 201:
             answer_api = json.loads(response.text)
@@ -207,9 +205,8 @@ class GN_API:
     def get_thesaurus_dict(self, thesaurus_key=None):
         url = self.server + self.prefix_gn_url + "/srv/fre/thesaurus?_content_type=json"
         # no needed to authenticate this is public
-        self.session = requests.Session()
         response = self.session.get(url, verify=self.verifytls)
-        self.session.close()
+
         if thesaurus_key is None:
             return json.loads(response.text)[0]
         else:
@@ -231,9 +228,8 @@ class GN_API:
                 url += f"&thesaurus={th['key']}"
         # no needed to authenticate this is public
         headers = {"Accept": "application/json", "X-XSRF-TOKEN": self.xsrf_token}
-        self.session = requests.Session()
         response = self.session.get(url, headers=headers, verify=self.verifytls)
-        self.session.close()
+
         return json.loads(response.text)
 
     # not working yet
@@ -261,7 +257,6 @@ class GN_API:
         cookies = {
             "XSRF-TOKEN": self.xsrf_token,
         }
-        self.session = requests.Session()
         response = self.session.post(
             self.server
             + self.prefix_gn_url
@@ -276,7 +271,7 @@ class GN_API:
                 ("file", (filename, open(filename, "rb").read(), "application/rdf+xml"))
             ],
         )
-        self.session.close()
+
         req = response.request
         print(
             "{}\n{}\r\n{}\r\n\r\n{}".format(
@@ -304,14 +299,13 @@ class GN_API:
             + "/srv/api/registries/vocabularies/"
             + name
         )
-        self.session = requests.Session()
         response = self.session.delete(
             url,
             auth=(self.username, self.password),
             headers=headers,
             verify=self.verifytls,
         )
-        self.session.close()
+
         if response.status_code == 200:
             return response.text
         else:
@@ -324,14 +318,13 @@ class GN_API:
             + self.prefix_gn_url
             + "/srv/fre/admin.harvester.list?_content_type=json&id=-1"
         )
-        self.session = requests.Session()
         response = self.session.get(
             url,
             auth=(self.username, self.password),
             headers=headers,
             verify=self.verifytls,
         )
-        self.session.close()
+
         # print(response)
 
         if response.status_code == 200:
@@ -350,7 +343,6 @@ class GN_API:
             + self.id_node_gn
         )
 
-        self.session = requests.Session()
         # can take forever to answer if there is a lot of connected metadatas to the harvest
         # 1h timeout should be enough
         response = self.session.post(
@@ -361,7 +353,7 @@ class GN_API:
             verify=self.verifytls,
             timeout=3600,
         )
-        self.session.close()
+
 
         print(response)
         if response.status_code == 204:
@@ -379,8 +371,6 @@ class GN_API:
             + id
         )
 
-        self.session = requests.Session()
-
         response = self.session.get(
             url,
             cookies={"XSRF-TOKEN": self.xsrf_token},
@@ -388,7 +378,7 @@ class GN_API:
             headers=headers,
             verify=self.verifytls,
         )
-        self.session.close()
+
 
         return json.loads(response.text)
 
@@ -470,8 +460,6 @@ class GN_API:
 
         response = self.session.get(
             url,
-            cookies={"XSRF-TOKEN": self.xsrf_token},
-            auth=(self.username, self.password),
             headers=headers,
             verify=self.verifytls,
         )
@@ -485,8 +473,6 @@ class GN_API:
 
         response = self.session.get(
             url,
-            cookies={"XSRF-TOKEN": self.xsrf_token},
-            auth=(self.username, self.password),
             headers=headers,
             verify=self.verifytls,
         )
@@ -494,7 +480,6 @@ class GN_API:
         return json.loads(response.text)
 
     def feed_search_bucket(self, name, uuid):
-        # PUT /selections/{bucket}?uuid=123&uuid=456
         headers = {"Accept": "application/json", "X-XSRF-TOKEN": self.xsrf_token}
         # print(type(uuid))
         feeduuid = ""
@@ -519,8 +504,7 @@ class GN_API:
 
         response = self.session.put(
             url,
-            cookies={"XSRF-TOKEN": self.xsrf_token},
-            auth=(self.username, self.password),
+            params=query_params,
             headers=headers,
             verify=self.verifytls,
         )
@@ -554,8 +538,6 @@ class GN_API:
 
         response = self.session.delete(
             url,
-            cookies={"XSRF-TOKEN": self.xsrf_token},
-            auth=(self.username, self.password),
             headers=headers,
             verify=self.verifytls,
         )
@@ -622,9 +604,7 @@ class GN_API:
         response = self.session.put(
             url,
             json=build_xpath,
-            cookies={"XSRF-TOKEN": self.xsrf_token},
             params=params,
-            auth=(self.username, self.password),
             headers=headers,
             verify=self.verifytls,
         )
