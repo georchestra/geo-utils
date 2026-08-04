@@ -58,75 +58,60 @@ class GN_API:
             print(response.text)
             print("Unable to find the XSRF token")
 
-    def get_all_catalog(self):
+    def get_all_catalog(self, steps=100, portal=None):
         # using CSW url /geonetwork/srv/fre/csw?service=CSW&version=2.0.2&request=GetRecords&typeNames=csw:Record&resultType=results&elementSetName=brief&maxRecords=10&startPosition=1
-        # get number of total records
-        url = (
-            self.server
-            + self.prefix_gn_url
-            + "/srv/fre/csw"
-            + "?service=CSW&version=2.0.2&request=GetRecords&typeNames=csw:Record&resultType=results&elementSetName=brief&maxRecords=1&startPosition=1"
-        )
-
+        # portal: uuid of a sub-portal (e.g. "Donnees-geographiques-OFB", see
+        # /srv/api/sources) to restrict the CSW query to that sub-catalog only,
+        # instead of the whole GeoNetwork instance.
         headers = {
             "Accept": "application/xml",
             "X-XSRF-TOKEN": self.xsrf_token,
         }
-        response = self.session.get(
-            url,
-            auth=(self.username, self.password),
-            headers=headers,
-            verify=self.verifytls,
-        )
+        csw_path = f"/{portal}/fre/csw" if portal else "/srv/fre/csw"
 
-        if response.status_code == 200:
-
-            meta_list_to_return = []
-
-            root = xmltodict.parse(response.text)
-            # search_results = root.find('csw:SearchResults')
-            number_of_records_matched = int(
-                root["csw:GetRecordsResponse"]["csw:SearchResults"][
-                    "@numberOfRecordsMatched"
-                ]
+        meta_list_to_return = []
+        start_position = 1
+        while True:
+            url_meta = (
+                self.server
+                + self.prefix_gn_url
+                + csw_path
+                + f"?service=CSW&version=2.0.2&request=GetRecords&typeNames=csw:Record&resultType=results&elementSetName=brief&maxRecords={steps}&startPosition={start_position}"
             )
-            number_of_records_returned = int(
-                root["csw:GetRecordsResponse"]["csw:SearchResults"][
-                    "@numberOfRecordsReturned"
-                ]
+            response_meta = self.session.get(
+                url_meta,
+                auth=(self.username, self.password),
+                headers=headers,
+                verify=self.verifytls,
             )
-            steps = 10
-            startPage = 1
-            for i in range(startPage, number_of_records_matched, steps):
-                url_meta = (
-                    self.server
-                    + self.prefix_gn_url
-                    + "/srv/fre/csw"
-                    + f"?service=CSW&version=2.0.2&request=GetRecords&typeNames=csw:Record&resultType=results&elementSetName=brief&maxRecords={steps}&startPosition={i}"
-                )
-                response_meta = self.session.get(
-                    url_meta,
-                    auth=(self.username, self.password),
-                    headers=headers,
-                    verify=self.verifytls,
-                )
-                if response_meta.status_code == 200:
+            if response_meta.status_code != 200:
+                return meta_list_to_return or None
 
-                    list_meta = xmltodict.parse(response_meta.text)
-                    for meta in list_meta["csw:GetRecordsResponse"][
-                        "csw:SearchResults"
-                    ]["csw:BriefRecord"]:
-                        if type(meta["dc:identifier"]) == dict:
-                            meta_list_to_return.append(meta["dc:identifier"]["#text"])
-                        elif type(meta["dc:identifier"]) == str:
-                            meta_list_to_return.append(meta["dc:identifier"])
-                else:
-                    return None
-                # slow down a bit
-                time.sleep(0.1)
-            return meta_list_to_return
-        else:
-            return None
+            search_results = xmltodict.parse(response_meta.text).get(
+                "csw:GetRecordsResponse", {}
+            ).get("csw:SearchResults")
+            if not search_results:
+                return meta_list_to_return or None
+
+            records = search_results.get("csw:BriefRecord") or []
+            if isinstance(records, dict):
+                records = [records]
+            for meta in records:
+                identifier = meta.get("dc:identifier")
+                if isinstance(identifier, dict):
+                    meta_list_to_return.append(identifier["#text"])
+                elif isinstance(identifier, str):
+                    meta_list_to_return.append(identifier)
+
+            returned = int(search_results.get("@numberOfRecordsReturned", len(records)))
+            if returned == 0:
+                break
+
+            start_position += steps
+            # slow down a bit
+            time.sleep(0.1)
+
+        return meta_list_to_return or None
 
     def get_metadataxml(self, uuid):
         headers = {
@@ -143,6 +128,31 @@ class GN_API:
         )
         if response.status_code == 200:
             return response.text
+
+    def get_metadata_mef_zip(self, uuid, with_related=True, timeout=120):
+        # Full MEF (Metadata Exchange Format) export of a record: XML content
+        # plus privileges, categories and attachments. Suitable for backup and
+        # re-import via upload_metadata(uuidprocessing="OVERWRITE").
+        headers = {
+            "Accept": "application/zip",
+            "X-XSRF-TOKEN": self.xsrf_token,
+        }
+        url = (
+            self.server
+            + self.prefix_gn_url
+            + f"/srv/api/records/{uuid}/formatters/zip"
+            + f"?withRelated={str(with_related).lower()}"
+        )
+        response = self.session.get(
+            url,
+            auth=(self.username, self.password),
+            headers=headers,
+            verify=self.verifytls,
+            timeout=timeout,
+        )
+        if response.status_code == 200:
+            return response.content
+        return None
 
     # possible value for uuidprocessing : NOTHING , OVERWRITE , GENERATEUUID
     def upload_metadata(
@@ -504,7 +514,6 @@ class GN_API:
 
         response = self.session.put(
             url,
-            params=query_params,
             headers=headers,
             verify=self.verifytls,
         )
@@ -609,6 +618,34 @@ class GN_API:
             verify=self.verifytls,
         )
         return json.loads(response.text)
+
+    def get_record_privileges(self, uuid):
+        # groupOwner/isPublishedToAll of a record, so a full-document
+        # overwrite (see upload_metadata uuidProcessing=OVERWRITE) can be
+        # resubmitted with the same sharing settings instead of resetting them.
+        headers = {"Accept": "application/json", "X-XSRF-TOKEN": self.xsrf_token}
+        url = self.server + self.prefix_gn_url + "/srv/api/search/records/_search"
+        body = {
+            "query": {"terms": {"_id": [uuid]}},
+            "_source": ["groupOwner"],
+        }
+        response = self.session.post(
+            url,
+            json=body,
+            headers=headers,
+            auth=(self.username, self.password),
+            verify=self.verifytls,
+        )
+        if response.status_code != 200:
+            return None
+        hits = response.json().get("hits", {}).get("hits", [])
+        if not hits:
+            return None
+        hit = hits[0]
+        return {
+            "groupOwner": hit.get("_source", {}).get("groupOwner"),
+            "isPublishedToAll": bool(hit.get("isPublishedToAll", False)),
+        }
 
     def closesession(self):
         self.session.close()
