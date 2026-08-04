@@ -17,7 +17,13 @@ urllib3.disable_warnings()
 
 class GN_API:
     def __init__(
-        self, server, username, password, verifytls=True, prefix_gn_url="/geonetwork"
+        self,
+        server,
+        username,
+        password,
+        verifytls=True,
+        prefix_gn_url="/geonetwork",
+        xsrf_via_get=False,
     ):
         self.server = server
         self.username = username
@@ -29,7 +35,7 @@ class GN_API:
         self.id_node_gn = ""
         self.prefix_gn_url = prefix_gn_url
         self.get_gnversion()
-        self.generate_xsfr()
+        self.generate_xsfr(use_get=xsrf_via_get)
 
     def get_gnversion(self):
         url = self.server + self.prefix_gn_url + "/srv/api/site"
@@ -42,13 +48,26 @@ class GN_API:
         return rsp
 
     # put this right before function
-    def generate_xsfr(self):
-        authenticate_url = self.server + self.prefix_gn_url + "/srv/fre/info?type=me"
+    def generate_xsfr(self, use_get=False):
+        # use_get=True:  GET  /srv/api/me          (current GeoNetwork REST API)
+        # use_get=False: POST /srv/fre/info?type=me (legacy endpoint, kept for
+        #                older GeoNetwork instances where /srv/api/me might not
+        #                behave as expected)
+        # Either way, this call's only purpose is to make the server set the
+        # XSRF-TOKEN cookie: the response status itself is not meaningful (both
+        # endpoints can answer with an error status depending on the server/
+        # security-proxy setup, while still setting the cookie).
+        if use_get:
+            authenticate_url = self.server + self.prefix_gn_url + "/srv/api/me"
+            response = self.session.get(
+                authenticate_url,
+                headers={"Accept": "application/json"},
+                verify=self.verifytls,
+            )
+        else:
+            authenticate_url = self.server + self.prefix_gn_url + "/srv/fre/info?type=me"
+            response = self.session.post(authenticate_url, verify=self.verifytls)
 
-        # To generate the XRSF token, send a post request to the following URL: http://localhost:8080/geonetwork/srv/eng/info?type=me
-
-        response = self.session.post(authenticate_url, verify=self.verifytls)
-        # print(response.cookies)
         # Extract XRSF token
         tmp_xsrf = response.cookies.get("XSRF-TOKEN", path=self.prefix_gn_url)
         if tmp_xsrf:
