@@ -4,7 +4,7 @@ This repository contains many tips/scripts/librairies in order to simplify admin
 
 If you have any ideas to develop/which you could create a new issue here : https://github.com/georchestra/geo-utils/issues
 
-## python module
+## Python module
 
 There is also a python module in order to script actions in geOrchestra plateform
 
@@ -26,8 +26,13 @@ Out[6]: '[{"uniqueIdentifier":[......]
 In [7]: geo_api.gn.search_keyword("velo")
 Out[7]: ......
 ```
-## dependancies 
+## Dependencies 
 
 geoserverCloud librairy https://github.com/camptocamp/python-geoservercloud
 
 can be installed with `pip install geoservercloud`
+
+
+## Extra useful lib
+
+https://github.com/jdev-org/georchestra-ldap-py

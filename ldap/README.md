@@ -27,3 +27,8 @@ ldapmodify -H ${URI}  -D ${CN} -w ${SECRET} < out/usergroups.ldif
 
 
 To come update rotation policy password
+
+
+## Extra useful lib
+
+https://github.com/jdev-org/georchestra-ldap-py
