@@ -36,3 +36,5 @@ can be installed with `pip install geoservercloud`
 ## Extra useful lib
 
 https://github.com/jdev-org/georchestra-ldap-py
+
+https://github.com/pi-geosolutions/vrt2rdf
