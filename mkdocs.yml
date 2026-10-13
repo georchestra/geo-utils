@@ -1,0 +1,66 @@
+site_name: geOrchestra Python library
+site_description: Python clients and utilities for geOrchestra administration and metadata workflows
+repo_url: https://github.com/georchestra/geo-utils
+repo_name: georchestra-geo-utils
+edit_uri: edit/main/docs/
+docs_dir: docs
+
+nav:
+  - Home: index.md
+  - User guide:
+      - Index: user_guide/index.md
+      - Getting started: user_guide/getting_started.md
+  - Technical guides:
+      - Index: technical_guides/index.md
+      - API reference: technical_guides/api_reference.md
+
+markdown_extensions:
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences
+
+plugins:
+  - search
+  - callouts
+  - exclude:
+      glob:
+        - tableofcontent.md
+  - i18n:
+      docs_structure: suffix
+      fallback_to_default: true
+      reconfigure_material: true
+      reconfigure_search: true
+      languages:
+        - locale: en
+          default: true
+          name: English
+          build: true
+          site_name: geOrchestra Python library
+        - locale: fr
+          name: Français
+          build: true
+          site_name: Bibliothèque Python geOrchestra
+          nav_translations:
+            Home: Accueil
+            User guide: Guide utilisateur
+            Index: Sommaire
+            Getting started: Prise en main
+            Technical guides: Guides techniques
+            API reference: Référence de l'API
+  - git-revision-date-localized:
+      enable_creation_date: true
+
+theme:
+  name: material
+  language: en
+  features:
+    - navigation.indexes
+    - navigation.tabs
+    - navigation.tabs.sticky
+    - navigation.footer
+    - content.code.copy
+
+extra_css:
+  - css/extra.css
+
+copyright: geOrchestra community
