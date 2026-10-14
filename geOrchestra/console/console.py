@@ -2,11 +2,13 @@ import requests
 import json
 
 class Console_api:
-    def __init__(self, server, username, password):
+    def __init__(self, server, username, password, verifytls=True):
         self.server = server
         self.username = username
         self.password = password
+        self.verifytls = verifytls
         self.session = requests.Session()
+        self.session.verify = verifytls
         self.headers = {'Accept': 'application/json'}
 
     # USERS
@@ -25,7 +27,8 @@ class Console_api:
         response = self.session.post(url,
                                      data=json.dumps(newuser),
                                      auth=(self.username, self.password),
-                                     headers=self.headers)
+                                     headers=self.headers,
+                                     verify=self.verifytls)
 
         if (response.status_code == 200):
             return response.text
@@ -37,6 +40,7 @@ class Console_api:
         response = self.session.get(url,
                                     auth=(self.username, self.password),
                                     headers=self.headers,
+                                    verify=self.verifytls,
                                     )
 
         if (response.status_code == 200):
@@ -46,6 +50,7 @@ class Console_api:
         response = self.session.delete(url,
                                     auth=(self.username, self.password),
                                     headers=self.headers,
+                                    verify=self.verifytls,
                                     )
         if (response.status_code == 200):
             return response.text
@@ -58,7 +63,8 @@ class Console_api:
         response = self.session.put(url,
                                     data=json,
                                     auth=(self.username, self.password),
-                                    headers=self.headers)
+                                    headers=self.headers,
+                                    verify=self.verifytls)
         # print(response)
         if (response.status_code == 200):
             return response.text
@@ -85,7 +91,8 @@ class Console_api:
         response = self.session.post(url,
                                      data=json.dumps(neworg),
                                      auth=(self.username, self.password),
-                                     headers=self.headers)
+                                     headers=self.headers,
+                                     verify=self.verifytls)
 
         if (response.status_code == 200):
             return response.text
@@ -96,7 +103,8 @@ class Console_api:
         url = self.server + "/console/private/orgs/" + uid
         response = self.session.get(url,
                                     auth=(self.username, self.password),
-                                    headers=self.headers)
+                                    headers=self.headers,
+                                    verify=self.verifytls)
 
         if (response.status_code == 200):
             return response.text
@@ -106,6 +114,7 @@ class Console_api:
         response = self.session.delete(url,
                                        auth=(self.username, self.password),
                                        headers=self.headers,
+                                       verify=self.verifytls,
                                        )
         if (response.status_code == 200):
             return response.text
@@ -124,7 +133,8 @@ class Console_api:
         response = self.session.post(url,
                                      data=json.dumps(newrole),
                                      auth=(self.username, self.password),
-                                     headers=self.headers)
+                                     headers=self.headers,
+                                     verify=self.verifytls)
 
         if (response.status_code == 200):
             return response.text
@@ -143,7 +153,8 @@ class Console_api:
         response = self.session.post(url,
                                      data=json.dumps(updateroles),
                                      auth=(self.username, self.password),
-                                     headers=self.headers)
+                                     headers=self.headers,
+                                     verify=self.verifytls)
 
         if (response.status_code == 200):
             return response.text
@@ -156,7 +167,8 @@ class Console_api:
         url = self.server + "/console/private/roles/" + uid
         response = self.session.get(url,
                                     auth=(self.username, self.password),
-                                    headers=headers)
+                                    headers=headers,
+                                    verify=self.verifytls)
 
         if (response.status_code == 200):
             return response.text
