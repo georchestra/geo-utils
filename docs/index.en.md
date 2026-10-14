@@ -1,20 +1,20 @@
 # geOrchestra Python library
 
-`geOrchestra` is a Python package for scripting against geOrchestra services. In order to automate many actions needed for dataplateform admin.
+`geOrchestra` is a Python package for scripting against geOrchestra services. It automates many actions needed for data platform administration.
 It supports GeoNetwork, Console, and GeoServer automations.
 
 The package is part of [geo-utils](https://github.com/georchestra/geo-utils), a repository of geOrchestra utilities and administration scripts. This guide covers the Python library only.
 
 ## API documentation
 
-- [API reference](technical_guides/api_reference.md): available service methods and important limitations.
+- [API reference](api_reference.md): available service methods and important limitations.
 
 ## Getting started
 
 ## Requirements
 
 - Python 3.9 or newer
-- A geOrchestra instance reachable from the machine running your script (eg https://demo.georchestra.org/ )
+- A geOrchestra instance reachable from the machine running your script (e.g. https://demo.georchestra.org/)
 - A username and password with permissions for the services and operations you will use
 
 ## Install
@@ -95,7 +95,7 @@ print(result)
 
 ## Connection details
 
-For developping purpose you can disable tls checks and customize geonetwork prefix url :
+For development purposes, you can disable TLS checks and customize the GeoNetwork URL prefix:
 
 ```python
 from geOrchestra.meta_apis import GN_API
@@ -111,6 +111,6 @@ gn = GN_API(
 
 ## Go further 
 
-[API reference](technical_guides/api_reference.md): available service methods and important limitations.
+[API reference](api_reference.md): available service methods and important limitations.
 
 
