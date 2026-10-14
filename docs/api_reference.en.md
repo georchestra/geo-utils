@@ -8,11 +8,15 @@ from geOrchestra.console import Console_api
 from geOrchestra.meta_apis import GN_API, Meta_manipulation, Metadata, ThesaurusKeyword
 ```
 
-`geOrchestra` is also exported from the root package. The API is a lightweight wrapper around HTTP endpoints rather than a normalized, typed client: return values and error behavior vary by method.
-
-## Top-level client
+## [geOrchestra class](https://github.com/georchestra/geo-utils/blob/main/geOrchestra/geOrchestra.py) 
 
 ```python
+from geOrchestra import geOrchestra
+
+server = "https://demo.georchestra.org"
+username = "testadmin"
+password = "testadmin"
+
 geOr_api = geOrchestra(server, username, password)
 ```
 
@@ -26,12 +30,16 @@ geOr_api = geOrchestra(server, username, password)
 
 Initialization immediately creates all three service clients. The GeoNetwork client makes requests during initialization to read site details and obtain an XSRF cookie. The top-level constructor takes no optional service configuration.
 
-## GeoNetwork: `GN_API`
+## [GeoNetwork: `GN_API`](https://github.com/georchestra/geo-utils/blob/main/geOrchestra/meta_apis/gn_api.py)
 
 Create the client directly to configure GeoNetwork-specific options:
 
 ```python
 from geOrchestra.meta_apis import GN_API
+
+server = "https://demo.georchestra.org"
+username = "testadmin"
+password = "testadmin"
 
 gn = GN_API(
     server,
@@ -53,10 +61,10 @@ TLS certificate verification is enabled by default. `xsrf_via_get=True` uses `/s
 | `get_all_catalog(steps=100, portal=None)` | Collect catalog record UUIDs using CSW paging | List of UUIDs, or `None` if no records/request failure |
 | `get_metadataxml(uuid)` | Read a record XML document | XML text on HTTP 200; otherwise `None` |
 | `get_metadata_mef_zip(uuid, with_related=True, timeout=120)` | Download a MEF ZIP export | ZIP bytes on HTTP 200; otherwise `None` |
-| `upload_metadata(metadata, groupid="100", uuidprocessing="GENERATEUUID", publish=False)` | Upload a metadata file-like object | Parsed JSON on success; `False` for handled failures |
+| `upload_metadata(metadata, groupid="100", uuidprocessing="GENERATEUUID", publish=False)` | Upload a metadata file-like object; `uuidprocessing` supports the GeoNetwork values `NOTHING`, `OVERWRITE`, and `GENERATEUUID` | Parsed JSON on success; `False` for handled failures |
 | `get_record_privileges(uuid)` | Read owner group and public visibility | Dictionary on success; otherwise `None` |
 
-`uuidprocessing` supports the GeoNetwork values `NOTHING`, `OVERWRITE`, and `GENERATEUUID`. An overwrite can replace an existing record; verify the UUID and permissions first.
+
 
 ### Thesauri
 
@@ -91,7 +99,7 @@ Batch edit methods operate on records in a search bucket. Review the bucket cont
 
 Call `closesession()` when finished with a standalone `GN_API` client to close its requests session.
 
-## Console: `Console_api`
+## [Console: `Console_api`](https://github.com/georchestra/geo-utils/blob/main/geOrchestra/console/console.py)
 
 The top-level client's `console` attribute is an instance of `Console_api`. It sends requests to `/console/private/...` using HTTP Basic authentication.
 
@@ -122,7 +130,7 @@ The top-level client's `console` attribute is an instance of `Console_api`. It s
 
 These operations may require administrator privileges. Return values are response text, `None`, or an error string rather than a common response type. Check each result before continuing.
 
-## GeoServer Cloud
+## GeoServer
 
 The top-level client's `geoserver` attribute is a `GeoServerCloud` instance from the [GeoServer Cloud Python library](https://github.com/camptocamp/python-geoservercloud). The wrapper builds it with the instance URL's `/geoserver/` endpoint and the supplied credentials.
 
