@@ -21,6 +21,76 @@ gn = GN_API(
 
 TLS certificate verification is enabled by default. `xsrf_via_get=True` uses `/srv/api/me`; the default uses the legacy `/srv/fre/info?type=me` endpoint to establish the XSRF cookie.
 
+### Examples
+
+The following examples come from the `__main__` blocks and comments in the sources.
+
+#### Add a thesaurus keyword to a metadata file and upload it
+
+```python
+from geOrchestra.meta_apis import GN_API, Meta_manipulation
+
+gn = GN_API("https://demo.georchestra.org", "testadmin", "testadmin", verifytls=False)
+
+with open("sample_meta.xml") as f:
+    metadata = f.read()
+
+metadata = Meta_manipulation.add_thesaurus(
+    metadata,
+    title="Category",
+    server="https://demo.georchestra.org",
+    thesaurus_value="test1",
+    local_thesaurus_name="exemple",
+)
+
+gn.upload_metadata(metadata=metadata, uuidprocessing="OVERWRITE", publish=True)
+
+for thesaurus in gn.get_thesaurus_dict():
+    print("Key name:", thesaurus["key"])
+
+gn.closesession()
+```
+
+#### List active filesystem harvests
+
+```python
+all_harvests = geOr_api.gn.get_harvests()
+filesystem = [h for h in all_harvests if h["@type"] == "filesystem"]
+active = [h for h in filesystem if h["options"]["status"] == "active"]
+```
+
+#### Back up a record and keep its sharing settings
+
+```python
+uuid = "4b5f8e1b-de37-47cd-9203-37a59f318b09"
+
+zip_bytes = geOr_api.gn.get_metadata_mef_zip(uuid, with_related=True)
+if zip_bytes:
+    with open(f"{uuid}.zip", "wb") as f:
+        f.write(zip_bytes)
+
+# groupOwner and isPublishedToAll, to resubmit with an OVERWRITE upload
+privileges = geOr_api.gn.get_record_privileges(uuid)
+```
+
+#### Batch edit records from a search selection
+
+Create and feed a selection first, check its content, then apply the change:
+
+```python
+results = geOr_api.gn.search_keyword("Mayotte")
+uuids = [hit["_source"]["uuid"] for hit in results["hits"]["hits"]]
+
+geOr_api.gn.feed_search_bucket("geoutilsbucket", uuids)
+print(geOr_api.gn.get_search_bucket("geoutilsbucket"))
+
+geOr_api.gn.batch_edit_search_and_replace(
+    "geoutilsbucket", search="old text", replace="new text", regex_flags="i"
+)
+
+geOr_api.gn.purge_search_bucket("geoutilsbucket")
+```
+
 
 ### Catalog and metadata
 

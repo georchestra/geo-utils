@@ -4,6 +4,29 @@
 
 The top-level client's `console` attribute is an instance of `Console_api`. It sends requests to `/console/private/...` using HTTP Basic authentication.
 
+### Example
+
+Update a user description, then create and delete a test user and a test organization (from the `__main__` block of the sources):
+
+```python
+import json
+
+console = geOr_api.console
+
+user = json.loads(console.getusers(uid="testadmin"))
+user["orgObj"] = json.loads(console.getorgs(uid=user["org"]))
+user["description"] = "Description changed with the API"
+print(console.updateuserdetails(uid=user["uid"], json=json.dumps(user)))
+
+print(console.createnewuser(org="PSC", sn="testapi", givenname="test",
+                            mail="testapi@example.org",
+                            description="This user was created with the API"))
+print(console.deluser(id="testapi"))
+
+print(console.createneworgs(name="TESTAPI", shortName="testapi", orgType="Other"))
+print(console.delorgs(id="testapi"))
+```
+
 ### Users
 
 | Method | Purpose | Result notes |

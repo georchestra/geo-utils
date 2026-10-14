@@ -2,6 +2,29 @@
 
 L’attribut `console` du client principal est une instance de `Console_api`. Il envoie des requêtes à `/console/private/...` avec l’authentification HTTP Basic.
 
+### Exemple
+
+Modifier la description d’un utilisateur, puis créer et supprimer un utilisateur et une organisation de test (extrait du bloc `__main__` des sources) :
+
+```python
+import json
+
+console = geOr_api.console
+
+user = json.loads(console.getusers(uid="testadmin"))
+user["orgObj"] = json.loads(console.getorgs(uid=user["org"]))
+user["description"] = "Description modifiée avec l’API"
+print(console.updateuserdetails(uid=user["uid"], json=json.dumps(user)))
+
+print(console.createnewuser(org="PSC", sn="testapi", givenname="test",
+                            mail="testapi@example.org",
+                            description="Cet utilisateur a été créé avec l’API"))
+print(console.deluser(id="testapi"))
+
+print(console.createneworgs(name="TESTAPI", shortName="testapi", orgType="Other"))
+print(console.delorgs(id="testapi"))
+```
+
 ### Utilisateurs
 
 | Méthode | Description | Remarques sur le résultat |

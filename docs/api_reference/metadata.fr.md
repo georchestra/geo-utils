@@ -2,6 +2,34 @@
 
 `Metadata`, `ThesaurusKeyword` et `Meta_manipulation` sont exportés par `geOrchestra.meta_apis`.
 
+### Exemple
+
+Ajouter à un fichier ISO 19115-3 un mot-clé de thésaurus trouvé dans GeoNetwork, puis modifier son identifiant (extrait du bloc `__main__` des sources) :
+
+```python
+from geOrchestra.meta_apis import GN_API, Metadata, ThesaurusKeyword
+
+gn = GN_API("http://localhost:8080", "testadmin", "testadmin")
+thesaurus = gn.get_thesaurus_dict("local.theme.geographie-ofb")
+keyword = gn.searchin_thesaurus_dict(keyword="Mayotte")[0]
+
+meta = Metadata()
+meta.load_from_file("./sample_meta2.xml")
+
+t = ThesaurusKeyword()
+t.load_from_json_get_thesaurus_dict(thesaurus)
+t.load_from_json_search_thesaurus_dict(keyword)
+meta.add_thesaurus_to_metadata(t)
+
+meta.update_value_xpath(
+    xpath="/mdb:MD_Metadata/mdb:identificationInfo/mri:MD_DataIdentification"
+    "/mri:citation/cit:CI_Citation/cit:identifier/mcc:MD_Identifier/mcc:code"
+    "/gco:CharacterString",
+    value="testnewidentifier",
+)
+meta.save_into_file("./sample_meta3.xml")
+```
+
 ### `Metadata`
 
 `Metadata(xml_string="")` analyse une chaîne XML de métadonnées ISO et détecte ses espaces de noms XML. En cas d’échec de l’analyse, `meta` est défini sur `None`.
