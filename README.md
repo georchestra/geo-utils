@@ -32,6 +32,18 @@ geoserverCloud librairy https://github.com/camptocamp/python-geoservercloud
 
 can be installed with `pip install geoservercloud`
 
+## Documentation
+
+The Python library documentation is built with MkDocs and Material, following the geOrchestra documentation template structure.
+
+Install the documentation dependencies and preview the site locally:
+
+```bash
+python -m pip install -r mkdocs_requirements.txt
+mkdocs serve
+```
+
+Then open http://127.0.0.1:8000/. The English documentation sources are in [`docs/`](docs/index.en.md).
 
 ## Extra useful lib
 
