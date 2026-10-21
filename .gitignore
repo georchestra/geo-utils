@@ -48,6 +48,11 @@ ipython_config.py
 __pypackages__/
 # mkdocs
 /site
+documentation
+venv_mkdocs/
+.venv_mkdocs/
+docs_modules/
+docs/tableofcontent.md
 .idea/
 .idea_modules/
 out/
