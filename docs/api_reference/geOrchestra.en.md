@@ -10,7 +10,13 @@ password = "testadmin"
 geOr_api = geOrchestra(server, username, password)
 ```
 
-`server` is the instance base URL without a trailing slash. The client provides:
+`server` is the instance base URL without a trailing slash. The optional `verifytls` parameter defaults to `True` and controls TLS certificate verification for all three clients. For a development server using a self-signed certificate, you can disable verification:
+
+```python
+geOr_api = geOrchestra(server, username, password, verifytls=False)
+```
+
+Do not disable certificate verification in production. The client provides:
 
 | Attribute | Client | Purpose |
 | --- | --- | --- |
@@ -18,4 +24,4 @@ geOr_api = geOrchestra(server, username, password)
 | `geOr_api.console` | `Console_api` | Console user, organization, and role API |
 | `geOr_api.geoserver` | `GeoServerCloud` | GeoServer Cloud dependency client |
 
-Initialization immediately creates all three service clients. The GeoNetwork client makes requests during initialization to read site details and obtain an XSRF cookie. The top-level constructor takes no optional service configuration.
+Initialization immediately creates all three service clients. The GeoNetwork client makes requests during initialization to read site details and obtain an XSRF cookie. GeoNetwork-specific options, such as the URL prefix or XSRF cookie retrieval method, require instantiating `GN_API` directly.
