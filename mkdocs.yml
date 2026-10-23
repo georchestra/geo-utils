@@ -53,6 +53,8 @@ plugins:
 
 theme:
   name: material
+  logo: images/georchestra-logo-white.svg
+  favicon: images/favicon.ico
   language: en
   features:
     - navigation.indexes
@@ -61,7 +63,28 @@ theme:
     - navigation.footer
     - content.code.copy
 
+extra:
+  version:
+    provider: mike
+  generator: false
+  social:
+    - icon: fontawesome/solid/paper-plane
+      link: mailto:psc@georchestra.org
+    - icon: fontawesome/brands/twitter
+      link: https://twitter.com/georchestra
+    - icon: fontawesome/brands/github
+      link: https://github.com/georchestra
+    - icon: fontawesome/brands/google
+      link: https://groups.google.com/g/georchestra?hl=en
+    - icon: fontawesome/brands/dev
+      link: https://groups.google.com/group/georchestra-dev?hl=fr
+    - icon: fontawesome/regular/comments
+      link: https://matrix.to/#/#georchestra:osgeo.org
+
 extra_css:
   - css/extra.css
 
-copyright: geOrchestra community
+extra_javascript:
+  - assets/custom_versions.js
+
+copyright: '© 2026 - geOrchestra'
