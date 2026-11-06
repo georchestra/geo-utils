@@ -81,10 +81,105 @@ class ThesaurusKeyword:
 
 
 class Metadata:
+    NAMESPACES = {
+        "cat": "http://standards.iso.org/iso/19115/-3/cat/1.0",
+        "cit": "http://standards.iso.org/iso/19115/-3/cit/2.0",
+        "dqm": "http://standards.iso.org/iso/19157/-2/dqm/1.0",
+        "gco": "http://standards.iso.org/iso/19115/-3/gco/1.0",
+        "gcx": "http://standards.iso.org/iso/19115/-3/gcx/1.0",
+        "gex": "http://standards.iso.org/iso/19115/-3/gex/1.0",
+        "gfc": "http://standards.iso.org/iso/19110/gfc/1.1",
+        "gmd": "http://www.isotc211.org/2005/gmd",
+        "gmi": "http://www.isotc211.org/2005/gmi",
+        "gml": "http://www.opengis.net/gml/3.2",
+        "gmx": "http://www.isotc211.org/2005/gmx",
+        "gsr": "http://www.isotc211.org/2005/gsr",
+        "gts": "http://www.isotc211.org/2005/gts",
+        "lan": "http://standards.iso.org/iso/19115/-3/lan/1.0",
+        "mac": "http://standards.iso.org/iso/19115/-3/mac/2.0",
+        "mas": "http://standards.iso.org/iso/19115/-3/mas/1.0",
+        "mcc": "http://standards.iso.org/iso/19115/-3/mcc/1.0",
+        "mco": "http://standards.iso.org/iso/19115/-3/mco/1.0",
+        "mda": "http://standards.iso.org/iso/19115/-3/mda/1.0",
+        "mdb": "http://standards.iso.org/iso/19115/-3/mdb/2.0",
+        "mdq": "http://standards.iso.org/iso/19157/-2/mdq/1.0",
+        "mds": "http://standards.iso.org/iso/19115/-3/mds/2.0",
+        "mdt": "http://standards.iso.org/iso/19115/-3/mdt/2.0",
+        "mex": "http://standards.iso.org/iso/19115/-3/mex/1.0",
+        "mmi": "http://standards.iso.org/iso/19115/-3/mmi/1.0",
+        "mpc": "http://standards.iso.org/iso/19115/-3/mpc/1.0",
+        "mrc": "http://standards.iso.org/iso/19115/-3/mrc/2.0",
+        "mrd": "http://standards.iso.org/iso/19115/-3/mrd/1.0",
+        "mri": "http://standards.iso.org/iso/19115/-3/mri/1.0",
+        "mrl": "http://standards.iso.org/iso/19115/-3/mrl/2.0",
+        "mrs": "http://standards.iso.org/iso/19115/-3/mrs/1.0",
+        "msr": "http://standards.iso.org/iso/19115/-3/msr/2.0",
+        "srv": "http://standards.iso.org/iso/19115/-3/srv/2.0",
+        "xlink": "http://www.w3.org/1999/xlink",
+        "xsi": "http://www.w3.org/2001/XMLSchema-instance",
+    }
+
     def __init__(self, xml_string: str = ""):
+        self.meta = None
+        self.ns = {}
+        self._has_wrapper = False
         try:
             self.meta = ET.fromstring(xml_string.encode("utf-8"))
             # reading ns from xml and create ns = { "gco": "http://standards.iso.org/iso/19115/-3/gco/1.0",...etc}
+            self.ns = self._get_dynamic_namespaces()
+        except ET.XMLSyntaxError:
+            # Resolve missing namespaces here.
+            parser = ET.XMLParser(recover=True)
+            document = ET.fromstring(
+                f"<root>{xml_string}</root>".encode("utf-8"), parser=parser
+            )
+            if document is None or not len(document) or any(
+                error.type != ET.ErrorTypes.NS_ERR_UNDEFINED_NAMESPACE
+                for error in parser.error_log
+            ):
+                return
+            if (document.text or "").strip() or any(
+                (element.tail or "").strip() for element in document
+            ):
+                return
+            namespaces = dict(document.nsmap)
+            for element in document.iter():
+                if not isinstance(element.tag, str):
+                    continue
+                local_namespaces = dict(self.NAMESPACES)
+                local_namespaces.update(element.nsmap)
+                if not element.tag.startswith("{") and ":" in element.tag:
+                    prefix, local_name = element.tag.split(":", 1)
+                    if prefix not in local_namespaces:
+                        return
+                    namespaces.setdefault(prefix, local_namespaces[prefix])
+                    element.tag = ET.QName(local_namespaces[prefix], local_name).text
+                for name, value in list(element.attrib.items()):
+                    if not name.startswith("{") and ":" in name:
+                        prefix, local_name = name.split(":", 1)
+                        if prefix not in local_namespaces:
+                            return
+                        namespaces.setdefault(prefix, local_namespaces[prefix])
+                        del element.attrib[name]
+                        element.set(
+                            ET.QName(local_namespaces[prefix], local_name), value
+                        )
+                type_name = element.get(
+                    "{http://www.w3.org/2001/XMLSchema-instance}type", ""
+                )
+                if ":" in type_name:
+                    prefix = type_name.split(":", 1)[0]
+                    if prefix in local_namespaces:
+                        namespaces.setdefault(prefix, local_namespaces[prefix])
+            root = ET.Element(document.tag, attrib=document.attrib, nsmap=namespaces)
+            root.text = document.text
+            root.tail = document.tail
+            root.extend(document)
+            if len(root) == 1:
+                self.meta = ET.fromstring(ET.tostring(root[0], with_tail=False))
+            else:
+                self.meta = root
+                self._has_wrapper = True
             self.ns = self._get_dynamic_namespaces()
         except Exception as e:
             self.meta = None
@@ -103,7 +198,15 @@ class Metadata:
 
     def to_string(self):
         if self.meta is not None:
-            return ET.tostring(self.meta, pretty_print=True, encoding="unicode")
+            document = ET.fromstring(
+                ET.tostring(self.meta), parser=ET.XMLParser(remove_blank_text=True)
+            )
+            if self._has_wrapper:
+                return "".join(
+                    ET.tostring(element, pretty_print=True, encoding="unicode", with_tail=False)
+                    for element in document
+                )
+            return ET.tostring(document, pretty_print=True, encoding="unicode")
         else:
             return ""
 
@@ -178,5 +281,3 @@ class Metadata:
                 for child in target_element.getchildren():
                     target_element.remove(child)
                 print("Okay good")
-
-
