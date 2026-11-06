@@ -14,6 +14,7 @@ nav:
     - geOrchestra: api_reference/geOrchestra.md
     - GeoNetwork: api_reference/geonetwork.md
     - Console: api_reference/console.md
+    - Maelstro: api_reference/maelstro.md
     - GeoServer: api_reference/geoserver.md
     - Metadata helpers: api_reference/metadata.md
 

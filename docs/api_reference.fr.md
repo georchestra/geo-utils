@@ -5,6 +5,7 @@ Le package expose actuellement les imports suivants :
 ```python
 from geOrchestra import geOrchestra
 from geOrchestra.console import Console_api
+from geOrchestra.maelstro import Maelstro
 from geOrchestra.meta_apis import GN_API, Meta_manipulation, Metadata, ThesaurusKeyword
 ```
 
@@ -13,5 +14,6 @@ from geOrchestra.meta_apis import GN_API, Meta_manipulation, Metadata, Thesaurus
 - [geOrchestra](api_reference/geOrchestra.fr.md)
 - [GeoNetwork](api_reference/geonetwork.fr.md)
 - [Console](api_reference/console.fr.md)
+- [Maelstro](api_reference/maelstro.fr.md)
 - [GeoServer](api_reference/geoserver.fr.md)
 - [Outils de métadonnées](api_reference/metadata.fr.md)
