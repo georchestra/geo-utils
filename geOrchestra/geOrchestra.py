@@ -1,6 +1,7 @@
 from geoservercloud import GeoServerCloud
 from geOrchestra.meta_apis import GN_API
 from geOrchestra.console import Console_api
+from geOrchestra.maelstro import Maelstro
 
 
 
@@ -12,6 +13,7 @@ class geOrchestra:
         self.verifytls = verifytls
         self.gn = GN_API(server, username, password, verifytls=verifytls)
         self.console = Console_api(server, username, password, verifytls=verifytls)
+        self.maelstro = Maelstro(server, username, password, verifytls=verifytls)
         self.geoserver = GeoServerCloud(
             url=server + "/geoserver/",
             user=username,
