@@ -28,9 +28,13 @@ Out[7]: ......
 ```
 ## Dependencies 
 
-geoserverCloud librairy https://github.com/camptocamp/python-geoservercloud
+The GeoServer Cloud client is optional. Install it with the package's `geoserver` extra to use `geor.geoserver`:
 
-can be installed with `pip install geoservercloud`
+```bash
+python -m pip install "geOrchestra[geoserver]"
+```
+
+Without the extra, the GeoNetwork and Console clients are available and `geor.geoserver` is `None`. You can also disable GeoServer initialization explicitly with `geOrchestra(..., with_geoserver=False)`.
 
 ## Documentation
 

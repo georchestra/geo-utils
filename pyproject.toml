@@ -23,5 +23,7 @@ classifiers = [
 dependencies = [
     "requests",
     "python-dotenv",
-    "geoservercloud",
 ]
+
+[project.optional-dependencies]
+geoserver = ["geoservercloud"]

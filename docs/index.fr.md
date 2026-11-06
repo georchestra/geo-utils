@@ -24,12 +24,18 @@ Installez le package directement depuis GitHub :
 python3 -m pip install "git+https://github.com/georchestra/geo_utils.git"
 ```
 
-Les métadonnées du package déclarent `requests`, `python-dotenv` et `geoservercloud` comme dépendances. Si vous installez le package dans un environnement Python système géré de l’extérieur, utilisez un environnement virtuel :
+Le package nécessite `requests` et `python-dotenv`. Le support GeoServer Cloud est facultatif : installez l’extra `geoserver` pour l’activer. Si vous installez le package dans un environnement Python système géré de l’extérieur, utilisez un environnement virtuel :
 
 ```bash
 python3 -m venv venv
 source venv/bin/activate
 python3 -m pip install "git+https://github.com/georchestra/geo_utils.git"
+```
+
+Pour inclure le client GeoServer Cloud facultatif, installez l’extra :
+
+```bash
+python3 -m pip install "git+https://github.com/georchestra/geo-utils.git#egg=geOrchestra[geoserver]"
 ```
 
 ## Exemples
@@ -72,7 +78,7 @@ Tous les services sont accessibles depuis la même instance `geOr_api`.
 
 ### GeoServer
 
-Le wrapper crée `geOr_api.geoserver` en utilisant la même URL d’instance et les mêmes identifiants. Ses méthodes sont fournies par la [bibliothèque Python GeoServer Cloud](https://github.com/camptocamp/python-geoservercloud). Par exemple, pour créer un espace de travail :
+Avec l’extra `geoserver` installé, le wrapper crée `geOr_api.geoserver` en utilisant la même URL d’instance et les mêmes identifiants. Sans cet extra, cet attribut vaut `None`. Ses méthodes sont fournies par la [bibliothèque Python GeoServer Cloud](https://github.com/camptocamp/python-geoservercloud). Par exemple, pour créer un espace de travail :
 
 ```python
 geOr_api.geoserver.create_workspace("example")

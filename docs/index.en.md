@@ -25,12 +25,18 @@ Install the package directly from GitHub:
 python3 -m pip install "git+https://github.com/georchestra/geo_utils.git"
 ```
 
-The package metadata declares `requests`, `python-dotenv`, and `geoservercloud` as dependencies. If you are installing into an externally managed system Python, use a virtual environment as followed :
+The package requires `requests` and `python-dotenv`. GeoServer Cloud support is optional; install the `geoserver` extra to enable it. If you are installing into an externally managed system Python, use a virtual environment:
 
 ```bash
 python3 -m venv venv
 source venv/bin/activate
 python3 -m pip install "git+https://github.com/georchestra/geo_utils.git"
+```
+
+To include the optional GeoServer Cloud client, install with the extra:
+
+```bash
+python3 -m pip install "git+https://github.com/georchestra/geo-utils.git#egg=geOrchestra[geoserver]"
 ```
 ## Samples
 
@@ -72,7 +78,7 @@ All services are available from the same `geOr_api` instance.
 
 ### GeoServer
 
-The wrapper creates `geOr_api.geoserver` using the same instance URL and credentials. Its methods are provided by the [GeoServer Cloud Python library](https://github.com/camptocamp/python-geoservercloud); for example, create a workspace:
+When installed with the `geoserver` extra, the wrapper creates `geOr_api.geoserver` using the same instance URL and credentials. Without the extra, this attribute is `None`. Its methods are provided by the [GeoServer Cloud Python library](https://github.com/camptocamp/python-geoservercloud); for example, create a workspace:
 
 ```python
 geOr_api.geoserver.create_workspace("example")
